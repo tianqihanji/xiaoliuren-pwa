@@ -1,0 +1,1332 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="theme-color" content="#090b0d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="小六壬">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+<meta name="format-detection" content="telephone=no">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%239e2b20'/%3E%3Ctext x='32' y='45' font-size='38' text-anchor='middle' fill='%23f8f1e2' font-family='serif'%3E壬%3C/text%3E%3C/svg%3E">
+<title>小六壬 · 掐指一算</title>
+<style>
+:root{
+  --paper:#f3eee2; --paper-2:#efe8d8; --paper-3:#faf6ec;
+  --ink:#171a16; --ink-2:#585e55; --ink-3:#8b9084;
+  --line:#dcd2bd; --cinnabar:#9e2b20; --cinnabar-2:#b5402f;
+  --gold:#b08945; --jade:#3f6b56;
+  --serif:"Songti SC","STSongti-SC-Regular","Noto Serif CJK SC","Source Han Serif SC","SimSun",serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font:15px/1.65 -apple-system,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+  overscroll-behavior-y:none;-webkit-font-smoothing:antialiased;
+}
+body::before{
+  content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(circle at 18% 8%, rgba(158,43,32,.07), transparent 42%),
+    radial-gradient(circle at 84% 82%, rgba(63,107,86,.09), transparent 46%),
+    radial-gradient(circle at 50% 50%, rgba(255,252,244,.9), transparent 70%),
+    repeating-linear-gradient(0deg, rgba(60,50,30,.022) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgba(60,50,30,.016) 0 1px, transparent 1px 3px);
+}
+.wrap{max-width:480px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 15px) 20px calc(env(safe-area-inset-bottom,0px) + 98px)}
+
+/* ---------- 顶栏 ---------- */
+.hero{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:2px 0 4px}
+.brand{display:flex;align-items:center;gap:10px}
+.seal{
+  width:38px;height:38px;border-radius:8px;display:grid;place-items:center;
+  background:linear-gradient(160deg,#a83226,#8e2018);color:#fbf4e6;
+  font-family:var(--serif);font-size:20px;line-height:1;
+  box-shadow:0 6px 14px rgba(142,32,24,.28),inset 0 1px 0 rgba(255,255,255,.25);
+  letter-spacing:0;
+}
+.brand h1{margin:0;font-family:var(--serif);font-size:22px;font-weight:600;letter-spacing:.14em;line-height:1.1}
+.brand p{margin:2px 0 0;font-size:10.5px;letter-spacing:.22em;color:var(--ink-3)}
+.today{text-align:right;font-size:11.5px;line-height:1.5;color:var(--ink-3);padding-top:2px}
+.today b{display:block;color:var(--ink-2);font-weight:500;font-size:12px;letter-spacing:.04em}
+
+/* ---------- 罗盘 ---------- */
+.compass{position:relative;width:min(80vw,298px);aspect-ratio:1;margin:14px auto 0;isolation:isolate}
+.compass::after{
+  content:"";position:absolute;inset:14%;border-radius:50%;z-index:-1;
+  background:radial-gradient(circle,rgba(176,137,69,.2),rgba(176,137,69,0) 70%);
+}
+.ring{position:absolute;border-radius:50%;border:1px solid rgba(176,137,69,.42)}
+.ring.r1{inset:0}
+.ring.r2{inset:16px;border-color:rgba(176,137,69,.26)}
+.ring.r3{inset:52px;border-color:rgba(176,137,69,.16);border-style:dashed}
+.layer{position:absolute;inset:0;transform-origin:50% 50%}
+.face{
+  position:absolute;left:50%;top:50%;width:64px;margin:0 0 0 0;
+  display:flex;justify-content:center;align-items:center;
+  font-family:var(--serif);font-size:17px;letter-spacing:.1em;color:var(--ink-2);
+  transition:color .2s,text-shadow .2s,transform .22s;
+  height:32px;
+}
+.face span{display:block;white-space:nowrap;transition:inherit}
+.face.lit{color:var(--cinnabar);text-shadow:0 0 16px rgba(158,43,32,.35);transform:scale(1.16)}
+.face.done{color:var(--cinnabar)}
+.branch{
+  position:absolute;left:50%;top:50%;width:20px;height:20px;display:grid;place-items:center;
+  font-size:10px;color:rgba(120,115,100,.55);font-family:var(--serif);
+}
+.cast-core{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:86px;height:86px;border-radius:50%;border:0;cursor:pointer;
+  background:radial-gradient(circle at 34% 28%,#b6402f,#8c1f17 72%);
+  color:#fbf3e4;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+  box-shadow:0 12px 28px rgba(140,31,23,.34),inset 0 2px 6px rgba(255,255,255,.3),inset 0 -4px 10px rgba(0,0,0,.2);
+  transition:transform .18s,box-shadow .18s;font-family:var(--serif);
+}
+.cast-core b{font-size:28px;font-weight:500;line-height:1;letter-spacing:.04em}
+.cast-core em{font-size:10px;font-style:normal;letter-spacing:.34em;opacity:.82;margin-left:.34em}
+.cast-core:active{transform:translate(-50%,-50%) scale(.94);box-shadow:0 6px 16px rgba(140,31,23,.3)}
+.cast-core[disabled]{opacity:.85}
+
+.cast-hint{text-align:center;font-size:12.5px;color:var(--ink-3);letter-spacing:.08em;margin:16px 0 0;min-height:19px;transition:color .2s}
+.cast-hint.act{color:var(--cinnabar)}
+
+/* ---------- 事项 ---------- */
+.matter{display:flex;align-items:center;gap:10px;margin-top:18px;min-width:0}
+.matter-label{font-size:11px;color:var(--ink-3);letter-spacing:.18em;flex:0 0 auto}
+.chips{display:flex;gap:7px;overflow-x:auto;padding:6px 26px 6px 0;scrollbar-width:none;-ms-overflow-style:none;flex:1 1 auto;min-width:0;
+  -webkit-mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 24px),transparent);
+  mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 24px),transparent)}
+.chips::-webkit-scrollbar{display:none}
+.chip{
+  flex:0 0 auto;border:1px solid var(--line);background:rgba(255,255,255,.45);
+  color:var(--ink-2);font-size:12.5px;padding:6px 13px;border-radius:999px;
+  letter-spacing:.06em;transition:.18s;cursor:pointer;
+}
+.chip.on{background:var(--cinnabar);border-color:var(--cinnabar);color:#fbf4e6;box-shadow:0 4px 12px rgba(158,43,32,.24)}
+.res-chips{padding:0 0 12px;margin-bottom:2px}
+
+/* ---------- 按钮 ---------- */
+.actions{margin-top:16px}
+.btn{
+  width:100%;border:0;border-radius:14px;padding:14px 0;font-size:15px;letter-spacing:.16em;
+  font-family:inherit;cursor:pointer;transition:transform .14s,box-shadow .18s,background .18s;
+}
+.btn:active{transform:scale(.985)}
+.btn.primary{background:var(--ink);color:#f7f1e2;box-shadow:0 8px 20px rgba(23,26,22,.22)}
+.btn.ghost{background:rgba(255,255,255,.55);color:var(--ink-2);border:1px solid var(--line);font-size:13.5px;padding:12px 0;letter-spacing:.1em}
+.btn-row{display:flex;gap:10px;margin-top:10px}
+.btn-row .btn{width:calc(50% - 5px)}
+.btn-row .btn{width:50%}
+.foot{margin:20px 0 0;text-align:center;font-size:10.5px;color:var(--ink-3);letter-spacing:.08em;line-height:1.7}
+
+/* ---------- 手札 / 设定 ---------- */
+.page{display:none}
+.page.on{display:block}
+.sec-title{font-family:var(--serif);font-size:19px;letter-spacing:.1em;margin:8px 0 4px}
+.sec-sub{font-size:11.5px;color:var(--ink-3);letter-spacing:.1em;margin:0 0 16px}
+.note{
+  background:rgba(255,255,255,.6);border:1px solid var(--line);border-radius:16px;
+  padding:14px 16px;margin-bottom:11px;position:relative;overflow:hidden;
+}
+.note::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--gold);opacity:.5}
+.note-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.note-time{font-size:11px;color:var(--ink-3);letter-spacing:.05em}
+.note-vd{font-size:11px;padding:2px 9px;border-radius:999px;border:1px solid currentColor;letter-spacing:.1em}
+.note-gua{display:flex;align-items:center;gap:7px;margin:8px 0 6px;font-family:var(--serif);font-size:16px;letter-spacing:.08em}
+.note-gua i{font-style:normal;color:var(--ink-3);font-size:12px}
+.note-line{font-size:12.5px;color:var(--ink-2);line-height:1.6}
+.note-btns{display:flex;gap:8px;margin-top:10px}
+.note-btns button{flex:1;border:1px solid var(--line);background:transparent;border-radius:9px;padding:7px 0;font-size:12px;color:var(--ink-2);font-family:inherit;cursor:pointer}
+.note-btns button:active{background:rgba(0,0,0,.04)}
+.empty{text-align:center;padding:52px 0;color:var(--ink-3);font-size:12.5px;letter-spacing:.1em}
+.empty b{display:block;font-family:var(--serif);font-size:30px;color:rgba(120,115,100,.35);margin-bottom:10px;font-weight:400}
+
+.set-item{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:15px 0;border-bottom:1px solid rgba(220,210,189,.7)}
+.set-item:last-child{border-bottom:0}
+.set-name{font-size:14px;letter-spacing:.04em}
+.set-desc{font-size:11px;color:var(--ink-3);margin-top:2px;line-height:1.5;max-width:250px}
+.switch{position:relative;width:46px;height:27px;border-radius:999px;background:#d5cdba;border:0;padding:0;flex:0 0 auto;cursor:pointer;transition:background .2s}
+.switch.on{background:var(--cinnabar)}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:21px;height:21px;border-radius:50%;background:#fff;box-shadow:0 2px 5px rgba(0,0,0,.18);transition:transform .22s}
+.switch.on::after{transform:translateX(19px)}
+.danger{flex:0 0 auto;height:34px;padding:0 15px;border-radius:10px;border:1px solid rgba(158,43,32,.18);background:rgba(158,43,32,.08);color:var(--cinnabar);font-size:12px;letter-spacing:.12em;font-family:inherit;cursor:pointer}
+.about{margin-top:26px;font-size:12px;color:var(--ink-3);line-height:1.9}
+.about h3{font-family:var(--serif);font-size:14px;color:var(--ink-2);letter-spacing:.1em;margin:0 0 6px;font-weight:500}
+.about p{margin:0 0 14px}
+
+/* ---------- 底部导航 ---------- */
+.tabbar{
+  position:fixed;left:50%;transform:translateX(-50%);width:max-content;
+  bottom:calc(env(safe-area-inset-bottom,0px) + 14px);
+  display:flex;gap:4px;padding:5px;border-radius:999px;z-index:20;
+  background:rgba(252,249,241,.82);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border:1px solid rgba(190,180,158,.5);box-shadow:0 12px 30px rgba(35,28,16,.14);
+}
+.tabbar button{
+  border:0;background:transparent;padding:9px 22px;border-radius:999px;white-space:nowrap;
+  font-size:13px;letter-spacing:.14em;color:var(--ink-2);font-family:inherit;cursor:pointer;transition:.2s;
+}
+.tabbar button.on{background:var(--cinnabar);color:#fbf4e6;box-shadow:0 4px 12px rgba(158,43,32,.25)}
+
+/* ---------- 弹层 ---------- */
+.mask{position:fixed;inset:0;background:rgba(22,17,10,.44);opacity:0;pointer-events:none;transition:opacity .3s;z-index:30}
+.mask.on{opacity:1;pointer-events:auto}
+.sheet{
+  position:fixed;left:50%;bottom:0;width:min(100%,480px);max-height:93dvh;z-index:40;
+  background:var(--paper-3);border-radius:24px 24px 0 0;
+  transform:translate(-50%,101%);transition:transform .42s cubic-bezier(.2,.85,.28,1);
+  box-shadow:0 -12px 44px rgba(25,19,10,.22);display:flex;flex-direction:column;
+}
+.sheet.open{transform:translate(-50%,0)}
+.grab{width:38px;height:4px;border-radius:99px;background:rgba(120,110,90,.28);margin:9px auto 0;flex:0 0 auto}
+.sheet-head{display:flex;align-items:center;justify-content:space-between;padding:6px 20px 8px;flex:0 0 auto}
+.sheet-title{font-family:var(--serif);font-size:15px;letter-spacing:.14em;color:var(--ink-2)}
+.sheet-x{width:32px;height:32px;border-radius:50%;border:0;background:rgba(0,0,0,.05);color:var(--ink-2);font-size:16px;line-height:1;cursor:pointer}
+.sheet-body{overflow-y:auto;padding:2px 20px calc(env(safe-area-inset-bottom,0px) + 26px);-webkit-overflow-scrolling:touch}
+
+/* ---------- 结果 ---------- */
+.res-meta{text-align:center;font-size:11.5px;color:var(--ink-3);letter-spacing:.1em;margin:2px 0 12px}
+.res-matter{display:inline-block;padding:2px 10px;border-radius:999px;border:1px solid rgba(158,43,32,.35);color:var(--cinnabar);font-size:11px;letter-spacing:.12em;margin-left:6px}
+.gua-row{display:flex;align-items:center;justify-content:center;gap:10px;margin:10px 0 4px}
+.gua-cell{text-align:center;min-width:66px}
+.gua-cell .tag{display:block;font-size:9.5px;letter-spacing:.2em;color:var(--ink-3);margin-bottom:4px}
+.gua-cell b{font-family:var(--serif);font-size:25px;font-weight:600;letter-spacing:.12em;display:block;line-height:1.25}
+.gua-cell.minor b{font-size:21px;color:var(--ink-2);font-weight:500}
+.gua-arrow{color:rgba(150,140,118,.6);font-size:13px;padding-bottom:8px}
+.verdict{display:flex;align-items:center;gap:12px;margin:14px 0 16px;padding:14px 16px;border-radius:16px;background:rgba(255,255,255,.62);border:1px solid var(--line)}
+.v-badge{flex:0 0 auto;width:48px;height:48px;border-radius:12px;display:grid;place-items:center;font-family:var(--serif);font-size:21px;color:#fbf4e6;letter-spacing:.04em;box-shadow:0 6px 16px rgba(0,0,0,.14)}
+.v-text{font-size:13px;line-height:1.7;color:var(--ink-2)}
+.v-c1{background:linear-gradient(160deg,#b0402d,#8b1f16)}
+.v-c2{background:linear-gradient(160deg,#8a5a2b,#6d451f)}
+.v-c3{background:linear-gradient(160deg,#7b7568,#5e594e)}
+.v-c4{background:linear-gradient(160deg,#4a5f52,#36493e)}
+.v-c5{background:linear-gradient(160deg,#33342f,#1e1f1c)}
+
+.block{background:rgba(255,255,255,.55);border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin-bottom:12px}
+.block-t{font-size:10.5px;letter-spacing:.22em;color:var(--gold);margin-bottom:9px;font-weight:500}
+.flow{display:flex;flex-direction:column;gap:9px}
+.flow-i{display:flex;gap:10px;font-size:13px;line-height:1.65;color:var(--ink-2)}
+.flow-i i{flex:0 0 auto;font-style:normal;font-family:var(--serif);color:var(--cinnabar);font-size:12px;letter-spacing:.1em;padding-top:1px}
+.poem{font-family:var(--serif);font-size:14px;line-height:2;color:var(--ink-2);letter-spacing:.06em;text-align:center}
+.poem span{display:block}
+.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--line);border-radius:12px;overflow:hidden;border:1px solid var(--line)}
+.g-cell{background:var(--paper-3);padding:10px 12px}
+.g-cell em{display:block;font-style:normal;font-size:9.5px;letter-spacing:.18em;color:var(--ink-3);margin-bottom:2px}
+.g-cell b{font-family:var(--serif);font-size:15px;font-weight:500;letter-spacing:.06em}
+.gc-wide{grid-column:span 2}
+.yj{display:flex;flex-direction:column;gap:7px;font-size:13px;line-height:1.6}
+.yj div{display:flex;gap:9px}
+.yj i{font-style:normal;flex:0 0 auto;width:18px;height:18px;border-radius:5px;display:grid;place-items:center;font-size:11px;margin-top:2px;font-family:var(--serif)}
+.yj .yi i{background:rgba(63,107,86,.14);color:var(--jade)}
+.yj .ji i{background:rgba(158,43,32,.13);color:var(--cinnabar)}
+.res-acts{display:flex;gap:9px;margin-top:16px}
+.res-acts button{flex:1;border-radius:12px;padding:13px 0;font-size:13px;letter-spacing:.1em;font-family:inherit;cursor:pointer;border:1px solid var(--line);background:rgba(255,255,255,.6);color:var(--ink-2)}
+.res-acts button.main{background:var(--ink);color:#f7f1e2;border-color:var(--ink)}
+.disclaimer{font-size:10.5px;color:var(--ink-3);text-align:center;letter-spacing:.06em;margin-top:14px;line-height:1.7}
+
+/* ---------- 择时 ---------- */
+.pick{margin-bottom:14px}
+.pick label{display:block;font-size:11px;letter-spacing:.16em;color:var(--ink-3);margin-bottom:6px}
+.pick select{
+  width:100%;appearance:none;-webkit-appearance:none;border:1px solid var(--line);border-radius:12px;
+  padding:12px 14px;font-size:14px;font-family:var(--serif);letter-spacing:.08em;color:var(--ink);
+  background:rgba(255,255,255,.7) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238b9084' stroke-width='1.4' fill='none'/%3E%3C/svg%3E") no-repeat right 14px center;
+}
+.pick-note{font-size:11px;color:var(--ink-3);line-height:1.7;margin:4px 0 10px}
+
+.toast{
+  position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 96px);transform:translate(-50%,14px);
+  background:rgba(26,20,12,.9);color:#f7f1e2;font-size:12.5px;letter-spacing:.08em;padding:10px 18px;border-radius:999px;
+  opacity:0;pointer-events:none;transition:.26s;z-index:60;max-width:76vw;text-align:center;
+}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+
+.mini-compass{display:flex;justify-content:center;margin:2px 0 6px}
+.mini-compass svg{width:112px;height:112px}
+
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(158,43,32,.24)}50%{box-shadow:0 0 0 14px rgba(158,43,32,0)}}
+.cast-core.hint{animation:pulse 2.6s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+/* ================= iOS 适配 ================= */
+html{-webkit-text-size-adjust:100%;background:#f3eee2}
+body{touch-action:manipulation;-webkit-touch-callout:none;min-height:100dvh}
+.cast-core,.btn,.chip,.tabbar button,.sheet-x,.note-btns button,.danger,.switch,.gate{
+  -webkit-user-select:none;user-select:none}
+
+/* 首次进入的安装提示（贴在底部导航上方，不遮挡品牌区） */
+.iotip{
+  position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 84px);
+  transform:translateX(-50%);
+  width:min(92vw,440px);z-index:55;
+  display:flex;align-items:flex-start;gap:8px;
+  padding:11px 12px 11px 14px;border-radius:14px;
+  background:rgba(255,252,244,.95);
+  border:1px solid rgba(176,137,69,.55);
+  box-shadow:0 10px 26px rgba(40,30,12,.16);
+  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  font-size:11.5px;line-height:1.6;color:#585e55;
+  transition:opacity .3s,transform .3s;
+}
+.iotip.out{opacity:0;transform:translate(-50%,12px);pointer-events:none}
+.iotip b{color:#9e2b20;font-weight:500}
+.iotip .x{margin-left:auto;border:0;background:transparent;color:#8b9084;font-size:14px;line-height:1;padding:2px 2px 0;cursor:pointer}
+
+/* 主屏启动时的全屏底色，避免启动瞬间白闪 */
+@media all and (display-mode: standalone){
+  html,body{background:#090b0d}
+}
+
+
+/* ================= 深色玄学皮肤 ================= */
+:root{
+  --paper:#090b0d; --paper-2:#0e1116; --paper-3:#12161d;
+  --ink:#e9e1d0; --ink-2:#a49c8b; --ink-3:#726c5e;
+  --line:rgba(201,162,92,.22);
+  --cinnabar:#c23f2e; --cinnabar-2:#d95a46;
+  --gold:#c9a227; --jade:#5f8f74;
+}
+html{background:#090b0d}
+body{background:#090b0d;color:var(--ink)}
+body::before{
+  background-image:
+    radial-gradient(circle at 9% 22%, rgba(233,225,208,.5) 0 1.2px, transparent 1.9px),
+    radial-gradient(circle at 26% 8%, rgba(201,162,92,.45) 0 1px, transparent 1.7px),
+    radial-gradient(circle at 71% 16%, rgba(233,225,208,.4) 0 1.4px, transparent 2.1px),
+    radial-gradient(circle at 88% 33%, rgba(201,162,92,.36) 0 1px, transparent 1.7px),
+    radial-gradient(circle at 44% 62%, rgba(233,225,208,.28) 0 1.1px, transparent 1.8px),
+    radial-gradient(circle at 16% 78%, rgba(201,162,92,.32) 0 1px, transparent 1.7px),
+    radial-gradient(circle at 92% 74%, rgba(233,225,208,.3) 0 1.3px, transparent 2px),
+    radial-gradient(circle at 62% 92%, rgba(201,162,92,.26) 0 1px, transparent 1.7px),
+    radial-gradient(58% 38% at 18% -4%, rgba(194,63,46,.20), transparent 62%),
+    radial-gradient(52% 42% at 86% 88%, rgba(201,162,92,.11), transparent 66%),
+    radial-gradient(95% 72% at 50% 42%, rgba(28,36,47,.6), transparent 78%),
+    repeating-linear-gradient(0deg, rgba(255,255,255,.012) 0 1px, transparent 1px 3px);
+}
+
+/* 顶部 */
+.brand h1{color:#f2ead9;text-shadow:0 0 24px rgba(201,162,92,.20)}
+.brand p{color:#7a7464}
+.seal{border:1px solid rgba(201,162,92,.4);
+  box-shadow:0 8px 22px rgba(194,63,46,.48),inset 0 1px 0 rgba(255,214,186,.3)}
+.today b{color:#a9a190}
+.today{color:#6f695c}
+
+/* 罗盘 */
+.compass::after{background:radial-gradient(circle,rgba(201,162,92,.18),transparent 70%)}
+.ring{border-color:rgba(201,162,92,.30)}
+.ring.r2{border-color:rgba(201,162,92,.19)}
+.ring.r3{border-color:rgba(201,162,92,.12)}
+.face{color:#9a9383}
+.face.lit{color:#f5ab97;text-shadow:0 0 18px rgba(217,90,70,.6)}
+.face.done{color:#ed7d66;text-shadow:0 0 22px rgba(217,90,70,.42)}
+.branch{color:rgba(201,162,92,.30)}
+.cast-core{
+  background:radial-gradient(circle at 34% 28%,#d75c45,#8d1f15 72%);
+  box-shadow:0 16px 38px rgba(194,63,46,.45),inset 0 2px 6px rgba(255,205,180,.30),inset 0 -8px 16px rgba(0,0,0,.45);
+}
+.cast-core:active{box-shadow:0 8px 18px rgba(194,63,46,.36)}
+.cast-hint{color:#7a7464}
+@keyframes pulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(217,90,70,.30)}
+  50%{box-shadow:0 0 0 16px rgba(217,90,70,0)}
+}
+
+/* 选项与按钮 */
+.chip{background:rgba(255,255,255,.045);border-color:rgba(255,255,255,.09);color:#b3ab99}
+.chip.on{background:linear-gradient(160deg,#c8452f,#96271a);border-color:transparent;color:#fff6e8;
+  box-shadow:0 6px 16px rgba(194,63,46,.38)}
+.btn.primary{background:linear-gradient(160deg,#c8452f,#8e2117);color:#fff3e2;
+  box-shadow:0 12px 26px rgba(160,45,30,.42)}
+.btn.ghost{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.10);color:#b6ae9c}
+.foot{color:#66604f}
+
+/* 底部导航 */
+.tabbar{background:rgba(16,20,26,.88);border-color:rgba(201,162,92,.26);
+  box-shadow:0 14px 34px rgba(0,0,0,.6)}
+.tabbar button{color:#a8a191}
+.tabbar button.on{background:linear-gradient(160deg,#c8452f,#8e2117);color:#fff3e2;
+  box-shadow:0 6px 16px rgba(194,63,46,.4)}
+
+/* 弹层 */
+.mask{background:rgba(0,0,0,.66)}
+.sheet{background:linear-gradient(180deg,#141922,#0c1015 55%);box-shadow:0 -16px 54px rgba(0,0,0,.66)}
+.grab{background:rgba(201,162,92,.32)}
+.sheet-title{color:#c6bead}
+.sheet-x{background:rgba(255,255,255,.07);color:#c6bead}
+
+/* 结果 */
+.res-meta{color:#7c7667}
+.res-matter{border-color:rgba(217,90,70,.55);color:#ef8a74}
+.gua-cell b{color:#f0e8d7}
+.gua-cell.minor b{color:#b8b0a0}
+.gua-arrow{color:rgba(201,162,92,.42)}
+.verdict{background:rgba(255,255,255,.045);border-color:rgba(201,162,92,.20)}
+.v-text{color:#b8b0a0}
+.v-badge{text-shadow:0 1px 3px rgba(0,0,0,.45)}
+.v-c1{background:linear-gradient(160deg,#d0563d,#8c1f16);box-shadow:0 8px 22px rgba(208,86,61,.38)}
+.v-c2{background:linear-gradient(160deg,#a97c2c,#6d4712);box-shadow:0 8px 22px rgba(169,124,44,.34)}
+.v-c3{background:linear-gradient(160deg,#6f6d64,#45443e)}
+.v-c4{background:linear-gradient(160deg,#416557,#274038)}
+.v-c5{background:linear-gradient(160deg,#3d434b,#22262b)}
+.block{background:rgba(255,255,255,.035);border-color:rgba(201,162,92,.16);
+  box-shadow:inset 0 1px 0 rgba(201,162,92,.05)}
+.block-t{color:#cf9f2e}
+.flow-i{color:#b5ad9c}
+.flow-i i{color:#ef8a74}
+.poem{color:#c3bbaa}
+.grid2{background:rgba(201,162,92,.16);border-color:rgba(201,162,92,.16)}
+.g-cell{background:#12161d}
+.g-cell em{color:#7d7666}
+.g-cell b{color:#e9e1d0}
+.yj .yi i{background:rgba(95,143,116,.20);color:#8fc0a3}
+.yj .ji i{background:rgba(194,63,46,.22);color:#f0917e}
+.res-acts button{background:rgba(255,255,255,.045);border-color:rgba(255,255,255,.10);color:#b5ad9c}
+.res-acts button.main{background:linear-gradient(160deg,#c8452f,#8e2117);border-color:transparent;color:#fff3e2}
+.disclaimer{color:#625d4f}
+
+/* 手札 */
+.note{background:rgba(255,255,255,.04);border-color:rgba(201,162,92,.15)}
+.note::before{background:linear-gradient(180deg,#c9a227,rgba(201,162,92,0));opacity:.7}
+.note-time{color:#7c7667}
+.note-gua{color:#eee6d5}
+.note-gua i{color:#5f5a4d}
+.note-line{color:#b0a897}
+.note-btns button{border-color:rgba(255,255,255,.10);color:#b5ad9c}
+.note-btns button:active{background:rgba(255,255,255,.07)}
+.empty{color:#6a6558}
+.empty b{color:rgba(201,162,92,.22)}
+
+/* 设定 */
+.sec-title{color:#ece4d3}
+.sec-sub{color:#7a7464}
+.set-name{color:#ded6c5}
+.set-desc{color:#8a8373}
+.set-item{border-color:rgba(201,162,92,.13)}
+.switch{background:#2a2f36}
+.switch::after{background:#e9e1d0;box-shadow:0 2px 6px rgba(0,0,0,.45)}
+.danger{background:rgba(194,63,46,.12);border-color:rgba(194,63,46,.40);color:#f0917e}
+.about h3{color:#c6bead}
+.about p{color:#8a8373}
+
+/* 择时选择器 */
+.pick label{color:#7a7464}
+.pick-note{color:#7a7464}
+.pick select{
+  background:#151a21 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23c9a227' stroke-width='1.4' fill='none'/%3E%3C/svg%3E") no-repeat right 14px center;
+  border-color:rgba(255,255,255,.12);color:#e9e1d0;
+}
+
+/* 提示条 */
+.toast{background:rgba(16,20,26,.94);color:#eee6d5;border:1px solid rgba(201,162,92,.28)}
+.iotip{background:rgba(17,21,27,.92);border-color:rgba(201,162,92,.34);color:#b6ae9c;
+  box-shadow:0 12px 30px rgba(0,0,0,.55)}
+.iotip b{color:#ef8a74}
+.iotip .x{color:#8a8373}
+
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="hero">
+    <div class="brand">
+      <div class="seal">壬</div>
+      <div>
+        <h1>小六壬</h1>
+        <p>掐指一算 · 六神断事</p>
+      </div>
+    </div>
+    <div class="today">
+      <b id="hDate">—</b>
+      <span id="hLunar">—</span>
+    </div>
+  </header>
+
+  <section class="page on" id="pgCast">
+    <div class="compass" id="compass">
+      <div class="ring r1"></div>
+      <div class="ring r2"></div>
+      <div class="ring r3"></div>
+      <div class="layer" id="layerFaces"></div>
+      <div class="layer" id="layerBranch"></div>
+      <button class="cast-core hint" id="castBtn" aria-label="起课"><b>起</b><em>课</em></button>
+    </div>
+    <div class="cast-hint" id="castHint">静心一念，再落指掐算</div>
+
+    <div class="matter">
+      <div class="matter-label">所问</div>
+      <div class="chips" id="chips"></div>
+    </div>
+
+    <div class="actions">
+      <button class="btn primary" id="btnNow">以此刻起课</button>
+      <div class="btn-row">
+        <button class="btn ghost" id="btnPick">择时起课</button>
+        <button class="btn ghost" id="btnRandom">心念起课</button>
+      </div>
+    </div>
+    <p class="foot">农历月 · 日 · 时三宫同参，以时宫为断<br>汉基科技</p>
+  </section>
+
+  <section class="page" id="pgNotes">
+    <h2 class="sec-title">手札</h2>
+    <p class="sec-sub">留存于本机，不上传任何数据</p>
+    <div id="notesList"></div>
+  </section>
+
+  <section class="page" id="pgSet">
+    <h2 class="sec-title">设定</h2>
+    <p class="sec-sub">算法口径与偏好</p>
+    <div id="setList"></div>
+    <div class="about">
+      <h3>起课之法</h3>
+      <p>以农历月份自大安起正月，顺数至当月所落之宫为月宫（天时）；再自月宫起初一，顺数至当日为日宫（地利）；再自日宫起子时，顺数至当下时辰为时宫（人和）。三宫同参，以时宫为断。</p>
+      <h3>六神</h3>
+      <p>大安（青龙·木）、留连（玄武·水）、速喜（朱雀·火）、赤口（白虎·金）、小吉（六合·木）、空亡（勾陈·土）。</p>
+      <h3>说明</h3>
+      <p>本应用取传统小六壬掌诀法排课，农历数据覆盖 1900–2098 年。所出断语由三宫象意合成，属传统文化参详之用，不作医疗、法律、投资等任何专业决策依据。</p>
+      <p style="text-align:center;color:rgba(120,115,100,.6);letter-spacing:.12em">汉基科技</p>
+    </div>
+  </section>
+</div>
+
+<nav class="tabbar">
+  <button data-tab="pgCast" class="on">起课</button>
+  <button data-tab="pgNotes">手札</button>
+  <button data-tab="pgSet">设定</button>
+</nav>
+
+<div class="mask" id="mask"></div>
+<section class="sheet" id="sheet" role="dialog" aria-modal="true">
+  <div class="grab"></div>
+  <div class="sheet-head">
+    <div class="sheet-title" id="sheetTitle">课象</div>
+    <button class="sheet-x" id="sheetX" aria-label="关闭">✕</button>
+  </div>
+  <div class="sheet-body" id="sheetBody"></div>
+</section>
+
+<div class="toast" id="toast"></div>
+
+<script id="lunar-data" type="application/json">[{"y":1900,"ny":[1,31],"m":[[1,0,29],[2,0,30],[3,0,29],[4,0,29],[5,0,30],[6,0,29],[7,0,30],[8,0,30],[8,1,29],[9,0,30],[10,0,30],[11,0,29],[12,0,30]]},{"y":1901,"ny":[2,19],"m":[[1,0,29],[2,0,30],[3,0,29],[4,0,29],[5,0,30],[6,0,29],[7,0,30],[8,0,29],[9,0,30],[10,0,30],[11,0,30],[12,0,29]]},{"y":1902,"ny":[2,8],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,29],[5,0,29],[6,0,30],[7,0,29],[8,0,30],[9,0,29],[10,0,30],[11,0,30],[12,0,30]]},{"y":1903,"ny":[1,29],"m":[[1,0,29],[2,0,30],[3,0,29],[4,0,30],[5,0,29],[5,1,29],[6,0,30],[7,0,29],[8,0,29],[9,0,30],[10,0,30],[11,0,29],[12,0,30]]},{"y":1904,"ny":[2,16],"m":[[1,0,30],[2,0,30],[3,0,29],[4,0,30],[5,0,29],[6,0,29],[7,0,30],[8,0,29],[9,0,29],[10,0,30],[11,0,30],[12,0,29]]},{"y":1905,"ny":[2,4],"m":[[1,0,30],[2,0,30],[3,0,29],[4,0,30],[5,0,30],[6,0,29],[7,0,29],[8,0,30],[9,0,29],[10,0,30],[11,0,29],[12,0,30]]},{"y":1906,"ny":[1,25],"m":[[1,0,29],[2,0,30],[3,0,30],[4,0,29],[4,1,30],[5,0,29],[6,0,30],[7,0,29],[8,0,30],[9,0,29],[10,0,30],[11,0,29],[12,0,30]]},{"y":1907,"ny":[2,13],"m":[[1,0,29],[2,0,30],[3,0,29],[4,0,30],[5,0,29],[6,0,30],[7,0,30],[8,0,29],[9,0,30],[10,0,29],[11,0,30],[12,0,29]]},{"y":1908,"ny":[2,2],"m":[[1,0,30],[2,0,29],[3,0,29],[4,0,30],[5,0,30],[6,0,29],[7,0,30],[8,0,29],[9,0,30],[10,0,30],[11,0,29],[12,0,30]]},{"y":1909,"ny":[1,22],"m":[[1,0,29],[2,0,30],[2,1,29],[3,0,29],[4,0,30],[5,0,29],[6,0,30],[7,0,29],[8,0,30],[9,0,30],[10,0,30],[11,0,29],[12,0,30]]},{"y":1910,"ny":[2,10],"m":[[1,0,29],[2,0,30],[3,0,29],[4,0,29],[5,0,30],[6,0,29],[7,0,30],[8,0,29],[9,0,30],[10,0,30],[11,0,30],[12,0,29]]},{"y":1911,"ny":[1,30],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,29],[5,0,29],[6,0,30],[6,1,29],[7,0,29],[8,0,30],[9,0,30],[10,0,29],[11,0,30],[12,0,30]]},{"y":1912,"ny":[2,18],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,29],[5,0,29],[6,0,30],[7,0,29],[8,0,29],[9,0,30],[10,0,30],[11,0,29],[12,0,30]]},{"y":1913,"ny":[2,6],"m":[[1,0,30],[2,0,30],[3,0,29],[4,0,30],[5,0,29],[6,0,29],[7,0,30],[8,0,29],[9,0,29],[10,0,30],[11,0,29],[12,0,30]]},{"y":1914,"ny":[1,26],"m":[[1,0,30],[2,0,30],[3,0,29],[4,0,30],[5,0,29],[5,1,30],[6,0,29],[7,0,30],[8,0,29],[9,0,29],[10,0,30],[11,0,29],[12,0,30]]},{"y":1915,"ny":[2,14],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,30],[5,0,29],[6,0,30],[7,0,29],[8,0,30],[9,0,29],[10,0,30],[11,0,29],[12,0,29]]},{"y":1916,"ny":[2,3],"m":[[1,0,30],[2,0,30],[3,0,29],[4,0,30],[5,0,29],[6,0,30],[7,0,30],[8,0,29],[9,0,30],[10,0,29],[11,0,30],[12,0,29]]},{"y":1917,"ny":[1,23],"m":[[1,0,30],[2,0,29],[2,1,29],[3,0,30],[4,0,29],[5,0,30],[6,0,30],[7,0,29],[8,0,30],[9,0,30],[10,0,29],[11,0,30],[12,0,29]]},{"y":1918,"ny":[2,11],"m":[[1,0,30],[2,0,29],[3,0,29],[4,0,30],[5,0,29],[6,0,30],[7,0,29],[8,0,30],[9,0,30],[10,0,29],[11,0,30],[12,0,30]]},{"y":1919,"ny":[2,1],"m":[[1,0,29],[2,0,30],[3,0,29],[4,0,29],[5,0,30],[6,0,29],[7,0,29],[7,1,30],[8,0,30],[9,0,29],[10,0,30],[11,0,30],[12,0,30]]},{"y":1920,"ny":[2,20],"m":[[1,0,29],[2,0,30],[3,0,29],[4,0,29],[5,0,30],[6,0,29],[7,0,29],[8,0,30],[9,0,29],[10,0,30],[11,0,30],[12,0,30]]},{"y":1921,"ny":[2,8],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,29],[5,0,29],[6,0,30],[7,0,29],[8,0,29],[9,0,30],[10,0,29],[11,0,30],[12,0,30]]},{"y":1922,"ny":[1,28],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,30],[5,0,29],[5,1,29],[6,0,30],[7,0,29],[8,0,29],[9,0,30],[10,0,29],[11,0,30],[12,0,30]]},{"y":1923,"ny":[2,16],"m":[[1,0,29],[2,0,30],[3,0,30],[4,0,29],[5,0,30],[6,0,29],[7,0,30],[8,0,29],[9,0,29],[10,0,30],[11,0,29],[12,0,30]]},{"y":1924,"ny":[2,5],"m":[[1,0,29],[2,0,30],[3,0,30],[4,0,29],[5,0,30],[6,0,30],[7,0,29],[8,0,30],[9,0,29],[10,0,30],[11,0,29],[12,0,29]]},{"y":1925,"ny":[1,24],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,29],[4,1,30],[5,0,30],[6,0,29],[7,0,30],[8,0,30],[9,0,29],[10,0,30],[11,0,29],[12,0,30]]},{"y":1926,"ny":[2,13],"m":[[1,0,29],[2,0,29],[3,0,30],[4,0,29],[5,0,30],[6,0,29],[7,0,30],[8,0,30],[9,0,29],[10,0,30],[11,0,30],[12,0,29]]},{"y":1927,"ny":[2,2],"m":[[1,0,30],[2,0,29],[3,0,29],[4,0,30],[5,0,29],[6,0,30],[7,0,29],[8,0,30],[9,0,29],[10,0,30],[11,0,30],[12,0,30]]},{"y":1928,"ny":[1,23],"m":[[1,0,29],[2,0,30],[2,1,29],[3,0,29],[4,0,30],[5,0,29],[6,0,29],[7,0,30],[8,0,29],[9,0,30],[10,0,30],[11,0,30],[12,0,30]]},{"y":1929,"ny":[2,10],"m":[[1,0,29],[2,0,30],[3,0,29],[4,0,29],[5,0,30],[6,0,29],[7,0,29],[8,0,30],[9,0,29],[10,0,30],[11,0,30],[12,0,30]]},{"y":1930,"ny":[1,30],"m":[[1,0,29],[2,0,30],[3,0,30],[4,0,29],[5,0,29],[6,0,30],[6,1,29],[7,0,29],[8,0,30],[9,0,29],[10,0,30],[11,0,30],[12,0,29]]},{"y":1931,"ny":[2,17],"m":[[1,0,30],[2,0,30],[3,0,29],[4,0,30],[5,0,29],[6,0,30],[7,0,29],[8,0,29],[9,0,30],[10,0,29],[11,0,30],[12,0,29]]},{"y":1932,"ny":[2,6],"m":[[1,0,30],[2,0,30],[3,0,30],[4,0,29],[5,0,30],[6,0,29],[7,0,30],[8,0,29],[9,0,29],[10,0,30],[11,0,29],[12,0,30]]},{"y":1933,"ny":[1,26],"m":[[1,0,29],[2,0,30],[3,0,30],[4,0,29],[5,0,30],[5,1,29],[6,0,30],[7,0,30],[8,0,29],[9,0,30],[10,0,29],[11,0,29],[12,0,30]]},{"y":1934,"ny":[2,14],"m":[[1,0,29],[2,0,30],[3,0,29],[4,0,30],[5,0,30],[6,0,29],[7,0,30],[8,0,29],[9,0,30],[10,0,30],[11,0,29],[12,0,30]]},{"y":1935,"ny":[2,4],"m":[[1,0,29],[2,0,29],[3,0,30],[4,0,29],[5,0,30],[6,0,29],[7,0,30],[8,0,30],[9,0,29],[10,0,30],[11,0,30],[12,0,29]]},{"y":1936,"ny":[1,24],"m":[[1,0,30],[2,0,29],[3,0,29],[3,1,30],[4,0,29],[5,0,29],[6,0,30],[7,0,30],[8,0,29],[9,0,30],[10,0,30],[11,0,30],[12,0,29]]},{"y":1937,"ny":[2,11],"m":[[1,0,30],[2,0,29],[3,0,29],[4,0,30],[5,0,29],[6,0,29],[7,0,30],[8,0,29],[9,0,30],[10,0,30],[11,0,30],[12,0,29]]},{"y":1938,"ny":[1,31],"m":[[1,0,30],[2,0,30],[3,0,29],[4,0,29],[5,0,30],[6,0,29],[7,0,29],[7,1,30],[8,0,29],[9,0,30],[10,0,30],[11,0,29],[12,0,30]]},{"y":1939,"ny":[2,19],"m":[[1,0,30],[2,0,30],[3,0,29],[4,0,29],[5,0,30],[6,0,29],[7,0,29],[8,0,30],[9,0,29],[10,0,30],[11,0,29],[12,0,30]]},{"y":1940,"ny":[2,8],"m":[[1,0,30],[2,0,30],[3,0,29],[4,0,30],[5,0,29],[6,0,30],[7,0,29],[8,0,29],[9,0,30],[10,0,29],[11,0,30],[12,0,29]]},{"y":1941,"ny":[1,27],"m":[[1,0,30],[2,0,30],[3,0,29],[4,0,30],[5,0,30],[6,0,29],[6,1,30],[7,0,29],[8,0,29],[9,0,30],[10,0,29],[11,0,30],[12,0,29]]},{"y":1942,"ny":[2,15],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,30],[5,0,29],[6,0,30],[7,0,29],[8,0,30],[9,0,29],[10,0,30],[11,0,29],[12,0,30]]},{"y":1943,"ny":[2,5],"m":[[1,0,29],[2,0,30],[3,0,29],[4,0,30],[5,0,29],[6,0,30],[7,0,30],[8,0,29],[9,0,30],[10,0,29],[11,0,30],[12,0,29]]},{"y":1944,"ny":[1,25],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,29],[4,1,30],[5,0,29],[6,0,30],[7,0,29],[8,0,30],[9,0,30],[10,0,29],[11,0,30],[12,0,30]]},{"y":1945,"ny":[2,13],"m":[[1,0,29],[2,0,29],[3,0,30],[4,0,29],[5,0,29],[6,0,30],[7,0,29],[8,0,30],[9,0,30],[10,0,30],[11,0,29],[12,0,30]]},{"y":1946,"ny":[2,2],"m":[[1,0,30],[2,0,29],[3,0,29],[4,0,30],[5,0,29],[6,0,29],[7,0,30],[8,0,29],[9,0,30],[10,0,30],[11,0,29],[12,0,30]]},{"y":1947,"ny":[1,22],"m":[[1,0,30],[2,0,30],[2,1,29],[3,0,29],[4,0,30],[5,0,29],[6,0,29],[7,0,30],[8,0,29],[9,0,30],[10,0,29],[11,0,30],[12,0,30]]},{"y":1948,"ny":[2,10],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,29],[5,0,30],[6,0,29],[7,0,29],[8,0,30],[9,0,29],[10,0,30],[11,0,29],[12,0,30]]},{"y":1949,"ny":[1,29],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,30],[5,0,29],[6,0,30],[7,0,29],[7,1,29],[8,0,30],[9,0,29],[10,0,30],[11,0,29],[12,0,30]]},{"y":1950,"ny":[2,17],"m":[[1,0,29],[2,0,30],[3,0,30],[4,0,29],[5,0,30],[6,0,30],[7,0,29],[8,0,29],[9,0,30],[10,0,29],[11,0,30],[12,0,29]]},{"y":1951,"ny":[2,6],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,30],[5,0,29],[6,0,30],[7,0,29],[8,0,30],[9,0,29],[10,0,30],[11,0,29],[12,0,30]]},{"y":1952,"ny":[1,27],"m":[[1,0,29],[2,0,30],[3,0,29],[4,0,30],[5,0,29],[5,1,30],[6,0,29],[7,0,30],[8,0,30],[9,0,29],[10,0,30],[11,0,29],[12,0,30]]},{"y":1953,"ny":[2,14],"m":[[1,0,29],[2,0,30],[3,0,29],[4,0,29],[5,0,30],[6,0,30],[7,0,29],[8,0,30],[9,0,30],[10,0,29],[11,0,30],[12,0,29]]},{"y":1954,"ny":[2,3],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,29],[5,0,29],[6,0,30],[7,0,29],[8,0,30],[9,0,30],[10,0,30],[11,0,29],[12,0,30]]},{"y":1955,"ny":[1,24],"m":[[1,0,29],[2,0,30],[3,0,29],[3,1,30],[4,0,29],[5,0,29],[6,0,30],[7,0,29],[8,0,30],[9,0,29],[10,0,30],[11,0,30],[12,0,30]]},{"y":1956,"ny":[2,12],"m":[[1,0,29],[2,0,30],[3,0,29],[4,0,30],[5,0,29],[6,0,29],[7,0,30],[8,0,29],[9,0,30],[10,0,29],[11,0,30],[12,0,30]]},{"y":1957,"ny":[1,31],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,29],[5,0,30],[6,0,29],[7,0,29],[8,0,30],[8,1,29],[9,0,30],[10,0,29],[11,0,30],[12,0,29]]},{"y":1958,"ny":[2,18],"m":[[1,0,30],[2,0,30],[3,0,30],[4,0,29],[5,0,30],[6,0,29],[7,0,29],[8,0,30],[9,0,29],[10,0,30],[11,0,29],[12,0,30]]},{"y":1959,"ny":[2,8],"m":[[1,0,29],[2,0,30],[3,0,30],[4,0,29],[5,0,30],[6,0,29],[7,0,30],[8,0,29],[9,0,30],[10,0,29],[11,0,30],[12,0,29]]},{"y":1960,"ny":[1,28],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,29],[5,0,30],[6,0,30],[6,1,29],[7,0,30],[8,0,29],[9,0,30],[10,0,29],[11,0,30],[12,0,29]]},{"y":1961,"ny":[2,15],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,29],[5,0,30],[6,0,29],[7,0,30],[8,0,30],[9,0,29],[10,0,30],[11,0,29],[12,0,30]]},{"y":1962,"ny":[2,5],"m":[[1,0,29],[2,0,30],[3,0,29],[4,0,29],[5,0,30],[6,0,29],[7,0,30],[8,0,30],[9,0,29],[10,0,30],[11,0,30],[12,0,29]]},{"y":1963,"ny":[1,25],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,29],[4,1,29],[5,0,30],[6,0,29],[7,0,30],[8,0,29],[9,0,30],[10,0,30],[11,0,30],[12,0,29]]},{"y":1964,"ny":[2,13],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,29],[5,0,29],[6,0,30],[7,0,29],[8,0,30],[9,0,29],[10,0,30],[11,0,30],[12,0,30]]},{"y":1965,"ny":[2,2],"m":[[1,0,29],[2,0,30],[3,0,29],[4,0,30],[5,0,29],[6,0,29],[7,0,30],[8,0,29],[9,0,29],[10,0,30],[11,0,30],[12,0,29]]},{"y":1966,"ny":[1,21],"m":[[1,0,30],[2,0,30],[3,0,30],[3,1,29],[4,0,30],[5,0,29],[6,0,29],[7,0,30],[8,0,29],[9,0,29],[10,0,30],[11,0,30],[12,0,29]]},{"y":1967,"ny":[2,9],"m":[[1,0,30],[2,0,30],[3,0,29],[4,0,30],[5,0,30],[6,0,29],[7,0,29],[8,0,30],[9,0,29],[10,0,30],[11,0,29],[12,0,30]]},{"y":1968,"ny":[1,30],"m":[[1,0,29],[2,0,30],[3,0,29],[4,0,30],[5,0,30],[6,0,29],[7,0,30],[7,1,29],[8,0,30],[9,0,29],[10,0,30],[11,0,29],[12,0,30]]},{"y":1969,"ny":[2,17],"m":[[1,0,29],[2,0,30],[3,0,29],[4,0,30],[5,0,29],[6,0,30],[7,0,30],[8,0,29],[9,0,30],[10,0,29],[11,0,30],[12,0,29]]},{"y":1970,"ny":[2,6],"m":[[1,0,30],[2,0,29],[3,0,29],[4,0,30],[5,0,29],[6,0,30],[7,0,30],[8,0,29],[9,0,30],[10,0,30],[11,0,29],[12,0,30]]},{"y":1971,"ny":[1,27],"m":[[1,0,29],[2,0,30],[3,0,29],[4,0,29],[5,0,30],[5,1,29],[6,0,30],[7,0,29],[8,0,30],[9,0,30],[10,0,30],[11,0,29],[12,0,30]]},{"y":1972,"ny":[2,15],"m":[[1,0,29],[2,0,30],[3,0,29],[4,0,29],[5,0,30],[6,0,29],[7,0,30],[8,0,29],[9,0,30],[10,0,30],[11,0,29],[12,0,30]]},{"y":1973,"ny":[2,3],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,29],[5,0,29],[6,0,30],[7,0,29],[8,0,29],[9,0,30],[10,0,30],[11,0,29],[12,0,30]]},{"y":1974,"ny":[1,23],"m":[[1,0,30],[2,0,30],[3,0,29],[4,0,30],[4,1,29],[5,0,29],[6,0,30],[7,0,29],[8,0,29],[9,0,30],[10,0,30],[11,0,29],[12,0,30]]},{"y":1975,"ny":[2,11],"m":[[1,0,30],[2,0,30],[3,0,29],[4,0,30],[5,0,29],[6,0,29],[7,0,30],[8,0,29],[9,0,29],[10,0,30],[11,0,29],[12,0,30]]},{"y":1976,"ny":[1,31],"m":[[1,0,30],[2,0,30],[3,0,29],[4,0,30],[5,0,29],[6,0,30],[7,0,29],[8,0,30],[8,1,29],[9,0,29],[10,0,30],[11,0,29],[12,0,30]]},{"y":1977,"ny":[2,18],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,30],[5,0,29],[6,0,30],[7,0,29],[8,0,30],[9,0,29],[10,0,30],[11,0,29],[12,0,29]]},{"y":1978,"ny":[2,7],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,30],[5,0,29],[6,0,30],[7,0,29],[8,0,30],[9,0,30],[10,0,29],[11,0,30],[12,0,29]]},{"y":1979,"ny":[1,28],"m":[[1,0,30],[2,0,29],[3,0,29],[4,0,30],[5,0,29],[6,0,30],[6,1,30],[7,0,29],[8,0,30],[9,0,30],[10,0,29],[11,0,30],[12,0,29]]},{"y":1980,"ny":[2,16],"m":[[1,0,30],[2,0,29],[3,0,29],[4,0,30],[5,0,29],[6,0,30],[7,0,29],[8,0,30],[9,0,30],[10,0,29],[11,0,30],[12,0,30]]},{"y":1981,"ny":[2,5],"m":[[1,0,29],[2,0,30],[3,0,29],[4,0,29],[5,0,30],[6,0,29],[7,0,29],[8,0,30],[9,0,30],[10,0,29],[11,0,30],[12,0,30]]},{"y":1982,"ny":[1,25],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,29],[4,1,29],[5,0,30],[6,0,29],[7,0,29],[8,0,30],[9,0,29],[10,0,30],[11,0,30],[12,0,30]]},{"y":1983,"ny":[2,13],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,29],[5,0,29],[6,0,30],[7,0,29],[8,0,29],[9,0,30],[10,0,29],[11,0,30],[12,0,30]]},{"y":1984,"ny":[2,2],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,30],[5,0,29],[6,0,29],[7,0,30],[8,0,29],[9,0,29],[10,0,30],[10,1,29],[11,0,30],[12,0,30]]},{"y":1985,"ny":[2,20],"m":[[1,0,29],[2,0,30],[3,0,30],[4,0,29],[5,0,30],[6,0,29],[7,0,30],[8,0,29],[9,0,29],[10,0,30],[11,0,29],[12,0,30]]},{"y":1986,"ny":[2,9],"m":[[1,0,29],[2,0,30],[3,0,30],[4,0,29],[5,0,30],[6,0,30],[7,0,29],[8,0,30],[9,0,29],[10,0,30],[11,0,29],[12,0,29]]},{"y":1987,"ny":[1,29],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,29],[5,0,30],[6,0,30],[6,1,29],[7,0,30],[8,0,30],[9,0,29],[10,0,30],[11,0,29],[12,0,29]]},{"y":1988,"ny":[2,17],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,29],[5,0,30],[6,0,29],[7,0,30],[8,0,30],[9,0,29],[10,0,30],[11,0,30],[12,0,29]]},{"y":1989,"ny":[2,6],"m":[[1,0,30],[2,0,29],[3,0,29],[4,0,30],[5,0,29],[6,0,30],[7,0,29],[8,0,30],[9,0,29],[10,0,30],[11,0,30],[12,0,30]]},{"y":1990,"ny":[1,27],"m":[[1,0,29],[2,0,30],[3,0,29],[4,0,29],[5,0,30],[5,1,29],[6,0,29],[7,0,30],[8,0,29],[9,0,30],[10,0,30],[11,0,30],[12,0,30]]},{"y":1991,"ny":[2,15],"m":[[1,0,29],[2,0,30],[3,0,29],[4,0,29],[5,0,30],[6,0,29],[7,0,29],[8,0,30],[9,0,29],[10,0,30],[11,0,30],[12,0,30]]},{"y":1992,"ny":[2,4],"m":[[1,0,29],[2,0,30],[3,0,30],[4,0,29],[5,0,29],[6,0,30],[7,0,29],[8,0,29],[9,0,30],[10,0,29],[11,0,30],[12,0,30]]},{"y":1993,"ny":[1,23],"m":[[1,0,29],[2,0,30],[3,0,30],[3,1,29],[4,0,30],[5,0,29],[6,0,30],[7,0,29],[8,0,29],[9,0,30],[10,0,29],[11,0,30],[12,0,29]]},{"y":1994,"ny":[2,10],"m":[[1,0,30],[2,0,30],[3,0,30],[4,0,29],[5,0,30],[6,0,29],[7,0,30],[8,0,29],[9,0,29],[10,0,30],[11,0,29],[12,0,30]]},{"y":1995,"ny":[1,31],"m":[[1,0,29],[2,0,30],[3,0,30],[4,0,29],[5,0,30],[6,0,29],[7,0,30],[8,0,30],[8,1,29],[9,0,29],[10,0,30],[11,0,29],[12,0,30]]},{"y":1996,"ny":[2,19],"m":[[1,0,29],[2,0,30],[3,0,29],[4,0,30],[5,0,30],[6,0,29],[7,0,30],[8,0,29],[9,0,30],[10,0,30],[11,0,29],[12,0,29]]},{"y":1997,"ny":[2,7],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,29],[5,0,30],[6,0,29],[7,0,30],[8,0,30],[9,0,29],[10,0,30],[11,0,30],[12,0,29]]},{"y":1998,"ny":[1,28],"m":[[1,0,30],[2,0,29],[3,0,29],[4,0,30],[5,0,29],[5,1,29],[6,0,30],[7,0,30],[8,0,29],[9,0,30],[10,0,30],[11,0,29],[12,0,30]]},{"y":1999,"ny":[2,16],"m":[[1,0,30],[2,0,29],[3,0,29],[4,0,30],[5,0,29],[6,0,29],[7,0,30],[8,0,29],[9,0,30],[10,0,30],[11,0,30],[12,0,29]]},{"y":2000,"ny":[2,5],"m":[[1,0,30],[2,0,30],[3,0,29],[4,0,29],[5,0,30],[6,0,29],[7,0,29],[8,0,30],[9,0,29],[10,0,30],[11,0,30],[12,0,29]]},{"y":2001,"ny":[1,24],"m":[[1,0,30],[2,0,30],[3,0,29],[4,0,30],[4,1,29],[5,0,30],[6,0,29],[7,0,29],[8,0,30],[9,0,29],[10,0,30],[11,0,29],[12,0,30]]},{"y":2002,"ny":[2,12],"m":[[1,0,30],[2,0,30],[3,0,29],[4,0,30],[5,0,29],[6,0,30],[7,0,29],[8,0,29],[9,0,30],[10,0,29],[11,0,30],[12,0,29]]},{"y":2003,"ny":[2,1],"m":[[1,0,30],[2,0,30],[3,0,29],[4,0,30],[5,0,30],[6,0,29],[7,0,30],[8,0,29],[9,0,29],[10,0,30],[11,0,29],[12,0,30]]},{"y":2004,"ny":[1,22],"m":[[1,0,29],[2,0,30],[2,1,29],[3,0,30],[4,0,30],[5,0,29],[6,0,30],[7,0,29],[8,0,30],[9,0,29],[10,0,30],[11,0,29],[12,0,30]]},{"y":2005,"ny":[2,9],"m":[[1,0,29],[2,0,30],[3,0,29],[4,0,30],[5,0,29],[6,0,30],[7,0,30],[8,0,29],[9,0,30],[10,0,29],[11,0,30],[12,0,29]]},{"y":2006,"ny":[1,29],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,29],[5,0,30],[6,0,29],[7,0,30],[7,1,29],[8,0,30],[9,0,30],[10,0,29],[11,0,30],[12,0,30]]},{"y":2007,"ny":[2,18],"m":[[1,0,29],[2,0,29],[3,0,30],[4,0,29],[5,0,29],[6,0,30],[7,0,29],[8,0,30],[9,0,30],[10,0,30],[11,0,29],[12,0,30]]},{"y":2008,"ny":[2,7],"m":[[1,0,30],[2,0,29],[3,0,29],[4,0,30],[5,0,29],[6,0,29],[7,0,30],[8,0,29],[9,0,30],[10,0,30],[11,0,29],[12,0,30]]},{"y":2009,"ny":[1,26],"m":[[1,0,30],[2,0,30],[3,0,29],[4,0,29],[5,0,30],[5,1,29],[6,0,29],[7,0,30],[8,0,29],[9,0,30],[10,0,29],[11,0,30],[12,0,30]]},{"y":2010,"ny":[2,14],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,29],[5,0,30],[6,0,29],[7,0,29],[8,0,30],[9,0,29],[10,0,30],[11,0,29],[12,0,30]]},{"y":2011,"ny":[2,3],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,30],[5,0,29],[6,0,30],[7,0,29],[8,0,29],[9,0,30],[10,0,29],[11,0,30],[12,0,29]]},{"y":2012,"ny":[1,23],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,30],[4,1,29],[5,0,30],[6,0,29],[7,0,30],[8,0,29],[9,0,30],[10,0,29],[11,0,30],[12,0,29]]},{"y":2013,"ny":[2,10],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,29],[5,0,30],[6,0,30],[7,0,29],[8,0,30],[9,0,29],[10,0,30],[11,0,29],[12,0,30]]},{"y":2014,"ny":[1,31],"m":[[1,0,29],[2,0,30],[3,0,29],[4,0,30],[5,0,29],[6,0,30],[7,0,29],[8,0,30],[9,0,30],[9,1,29],[10,0,30],[11,0,29],[12,0,30]]},{"y":2015,"ny":[2,19],"m":[[1,0,29],[2,0,30],[3,0,29],[4,0,29],[5,0,30],[6,0,29],[7,0,30],[8,0,30],[9,0,30],[10,0,29],[11,0,30],[12,0,29]]},{"y":2016,"ny":[2,8],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,29],[5,0,29],[6,0,30],[7,0,29],[8,0,30],[9,0,30],[10,0,29],[11,0,30],[12,0,30]]},{"y":2017,"ny":[1,28],"m":[[1,0,29],[2,0,30],[3,0,29],[4,0,30],[5,0,29],[6,0,29],[6,1,30],[7,0,29],[8,0,30],[9,0,29],[10,0,30],[11,0,30],[12,0,30]]},{"y":2018,"ny":[2,16],"m":[[1,0,29],[2,0,30],[3,0,29],[4,0,30],[5,0,29],[6,0,29],[7,0,30],[8,0,29],[9,0,30],[10,0,29],[11,0,30],[12,0,30]]},{"y":2019,"ny":[2,5],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,29],[5,0,30],[6,0,29],[7,0,29],[8,0,30],[9,0,29],[10,0,29],[11,0,30],[12,0,30]]},{"y":2020,"ny":[1,25],"m":[[1,0,29],[2,0,30],[3,0,30],[4,0,30],[4,1,29],[5,0,30],[6,0,29],[7,0,29],[8,0,30],[9,0,29],[10,0,30],[11,0,29],[12,0,30]]},{"y":2021,"ny":[2,12],"m":[[1,0,29],[2,0,30],[3,0,30],[4,0,29],[5,0,30],[6,0,29],[7,0,30],[8,0,29],[9,0,30],[10,0,29],[11,0,30],[12,0,29]]},{"y":2022,"ny":[2,1],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,29],[5,0,30],[6,0,30],[7,0,29],[8,0,30],[9,0,29],[10,0,30],[11,0,29],[12,0,30]]},{"y":2023,"ny":[1,22],"m":[[1,0,29],[2,0,30],[2,1,29],[3,0,29],[4,0,30],[5,0,30],[6,0,29],[7,0,30],[8,0,30],[9,0,29],[10,0,30],[11,0,29],[12,0,30]]},{"y":2024,"ny":[2,10],"m":[[1,0,29],[2,0,30],[3,0,29],[4,0,29],[5,0,30],[6,0,29],[7,0,30],[8,0,30],[9,0,29],[10,0,30],[11,0,30],[12,0,29]]},{"y":2025,"ny":[1,29],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,29],[5,0,29],[6,0,30],[6,1,29],[7,0,30],[8,0,29],[9,0,30],[10,0,30],[11,0,30],[12,0,29]]},{"y":2026,"ny":[2,17],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,29],[5,0,29],[6,0,30],[7,0,29],[8,0,29],[9,0,30],[10,0,30],[11,0,30],[12,0,29]]},{"y":2027,"ny":[2,6],"m":[[1,0,30],[2,0,30],[3,0,29],[4,0,30],[5,0,29],[6,0,29],[7,0,30],[8,0,29],[9,0,29],[10,0,30],[11,0,30],[12,0,29]]},{"y":2028,"ny":[1,26],"m":[[1,0,30],[2,0,30],[3,0,30],[4,0,29],[5,0,30],[5,1,29],[6,0,29],[7,0,30],[8,0,29],[9,0,29],[10,0,30],[11,0,30],[12,0,29]]},{"y":2029,"ny":[2,13],"m":[[1,0,30],[2,0,30],[3,0,29],[4,0,30],[5,0,29],[6,0,30],[7,0,29],[8,0,30],[9,0,29],[10,0,29],[11,0,30],[12,0,30]]},{"y":2030,"ny":[2,3],"m":[[1,0,29],[2,0,30],[3,0,29],[4,0,30],[5,0,30],[6,0,29],[7,0,30],[8,0,29],[9,0,30],[10,0,29],[11,0,30],[12,0,29]]},{"y":2031,"ny":[1,23],"m":[[1,0,29],[2,0,30],[3,0,30],[3,1,29],[4,0,30],[5,0,29],[6,0,30],[7,0,30],[8,0,29],[9,0,30],[10,0,29],[11,0,30],[12,0,29]]},{"y":2032,"ny":[2,11],"m":[[1,0,30],[2,0,29],[3,0,29],[4,0,30],[5,0,29],[6,0,30],[7,0,30],[8,0,29],[9,0,30],[10,0,30],[11,0,29],[12,0,30]]},{"y":2033,"ny":[1,31],"m":[[1,0,29],[2,0,30],[3,0,29],[4,0,29],[5,0,30],[6,0,29],[7,0,30],[8,0,29],[9,0,30],[10,0,30],[11,0,30],[11,1,29],[12,0,30]]},{"y":2034,"ny":[2,19],"m":[[1,0,29],[2,0,30],[3,0,29],[4,0,29],[5,0,30],[6,0,29],[7,0,30],[8,0,29],[9,0,30],[10,0,30],[11,0,29],[12,0,30]]},{"y":2035,"ny":[2,8],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,29],[5,0,29],[6,0,30],[7,0,29],[8,0,29],[9,0,30],[10,0,30],[11,0,29],[12,0,30]]},{"y":2036,"ny":[1,28],"m":[[1,0,30],[2,0,30],[3,0,29],[4,0,30],[5,0,29],[6,0,29],[6,1,30],[7,0,29],[8,0,29],[9,0,30],[10,0,29],[11,0,30],[12,0,30]]},{"y":2037,"ny":[2,15],"m":[[1,0,30],[2,0,30],[3,0,29],[4,0,30],[5,0,29],[6,0,29],[7,0,30],[8,0,29],[9,0,29],[10,0,30],[11,0,29],[12,0,30]]},{"y":2038,"ny":[2,4],"m":[[1,0,30],[2,0,30],[3,0,29],[4,0,30],[5,0,29],[6,0,30],[7,0,29],[8,0,30],[9,0,29],[10,0,29],[11,0,30],[12,0,29]]},{"y":2039,"ny":[1,24],"m":[[1,0,30],[2,0,30],[3,0,29],[4,0,30],[5,0,30],[5,1,29],[6,0,30],[7,0,29],[8,0,30],[9,0,29],[10,0,30],[11,0,29],[12,0,29]]},{"y":2040,"ny":[2,12],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,30],[5,0,29],[6,0,30],[7,0,29],[8,0,30],[9,0,30],[10,0,29],[11,0,30],[12,0,29]]},{"y":2041,"ny":[2,1],"m":[[1,0,29],[2,0,30],[3,0,29],[4,0,30],[5,0,29],[6,0,30],[7,0,30],[8,0,29],[9,0,30],[10,0,30],[11,0,29],[12,0,30]]},{"y":2042,"ny":[1,22],"m":[[1,0,29],[2,0,30],[2,1,29],[3,0,29],[4,0,30],[5,0,29],[6,0,30],[7,0,29],[8,0,30],[9,0,30],[10,0,29],[11,0,30],[12,0,30]]},{"y":2043,"ny":[2,10],"m":[[1,0,29],[2,0,30],[3,0,29],[4,0,29],[5,0,30],[6,0,29],[7,0,29],[8,0,30],[9,0,30],[10,0,29],[11,0,30],[12,0,30]]},{"y":2044,"ny":[1,30],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,29],[5,0,29],[6,0,30],[7,0,29],[7,1,29],[8,0,30],[9,0,29],[10,0,30],[11,0,30],[12,0,30]]},{"y":2045,"ny":[2,17],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,29],[5,0,29],[6,0,30],[7,0,29],[8,0,29],[9,0,30],[10,0,29],[11,0,30],[12,0,30]]},{"y":2046,"ny":[2,6],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,29],[5,0,30],[6,0,29],[7,0,30],[8,0,29],[9,0,29],[10,0,30],[11,0,29],[12,0,30]]},{"y":2047,"ny":[1,26],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,30],[5,0,29],[5,1,30],[6,0,29],[7,0,30],[8,0,29],[9,0,29],[10,0,30],[11,0,29],[12,0,30]]},{"y":2048,"ny":[2,14],"m":[[1,0,29],[2,0,30],[3,0,30],[4,0,29],[5,0,30],[6,0,30],[7,0,29],[8,0,30],[9,0,29],[10,0,29],[11,0,30],[12,0,29]]},{"y":2049,"ny":[2,2],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,29],[5,0,30],[6,0,30],[7,0,29],[8,0,30],[9,0,30],[10,0,29],[11,0,30],[12,0,29]]},{"y":2050,"ny":[1,23],"m":[[1,0,29],[2,0,30],[3,0,29],[3,1,30],[4,0,29],[5,0,30],[6,0,29],[7,0,30],[8,0,30],[9,0,29],[10,0,30],[11,0,30],[12,0,29]]},{"y":2051,"ny":[2,11],"m":[[1,0,30],[2,0,29],[3,0,29],[4,0,30],[5,0,29],[6,0,29],[7,0,30],[8,0,30],[9,0,29],[10,0,30],[11,0,30],[12,0,30]]},{"y":2052,"ny":[2,1],"m":[[1,0,29],[2,0,30],[3,0,29],[4,0,29],[5,0,30],[6,0,29],[7,0,29],[8,0,30],[8,1,29],[9,0,30],[10,0,30],[11,0,30],[12,0,30]]},{"y":2053,"ny":[2,19],"m":[[1,0,29],[2,0,30],[3,0,29],[4,0,29],[5,0,30],[6,0,29],[7,0,29],[8,0,30],[9,0,29],[10,0,30],[11,0,30],[12,0,30]]},{"y":2054,"ny":[2,8],"m":[[1,0,29],[2,0,30],[3,0,30],[4,0,29],[5,0,29],[6,0,30],[7,0,29],[8,0,29],[9,0,30],[10,0,29],[11,0,30],[12,0,30]]},{"y":2055,"ny":[1,28],"m":[[1,0,29],[2,0,30],[3,0,30],[4,0,29],[5,0,30],[6,0,29],[6,1,30],[7,0,29],[8,0,29],[9,0,30],[10,0,29],[11,0,30],[12,0,29]]},{"y":2056,"ny":[2,15],"m":[[1,0,30],[2,0,30],[3,0,30],[4,0,29],[5,0,30],[6,0,29],[7,0,30],[8,0,29],[9,0,29],[10,0,30],[11,0,29],[12,0,30]]},{"y":2057,"ny":[2,4],"m":[[1,0,29],[2,0,30],[3,0,30],[4,0,29],[5,0,30],[6,0,29],[7,0,30],[8,0,29],[9,0,30],[10,0,29],[11,0,30],[12,0,29]]},{"y":2058,"ny":[1,24],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,29],[4,1,30],[5,0,29],[6,0,30],[7,0,30],[8,0,29],[9,0,30],[10,0,30],[11,0,29],[12,0,29]]},{"y":2059,"ny":[2,12],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,29],[5,0,30],[6,0,29],[7,0,30],[8,0,29],[9,0,30],[10,0,30],[11,0,30],[12,0,29]]},{"y":2060,"ny":[2,2],"m":[[1,0,30],[2,0,29],[3,0,29],[4,0,30],[5,0,29],[6,0,29],[7,0,30],[8,0,29],[9,0,30],[10,0,30],[11,0,30],[12,0,29]]},{"y":2061,"ny":[1,21],"m":[[1,0,30],[2,0,30],[3,0,29],[3,1,29],[4,0,30],[5,0,29],[6,0,29],[7,0,30],[8,0,29],[9,0,30],[10,0,30],[11,0,30],[12,0,29]]},{"y":2062,"ny":[2,9],"m":[[1,0,30],[2,0,30],[3,0,29],[4,0,29],[5,0,30],[6,0,29],[7,0,29],[8,0,30],[9,0,29],[10,0,30],[11,0,30],[12,0,29]]},{"y":2063,"ny":[1,29],"m":[[1,0,30],[2,0,30],[3,0,29],[4,0,30],[5,0,29],[6,0,30],[7,0,29],[7,1,29],[8,0,30],[9,0,29],[10,0,30],[11,0,29],[12,0,30]]},{"y":2064,"ny":[2,17],"m":[[1,0,30],[2,0,30],[3,0,29],[4,0,30],[5,0,29],[6,0,30],[7,0,29],[8,0,29],[9,0,30],[10,0,29],[11,0,30],[12,0,29]]},{"y":2065,"ny":[2,5],"m":[[1,0,30],[2,0,30],[3,0,29],[4,0,30],[5,0,30],[6,0,29],[7,0,30],[8,0,29],[9,0,29],[10,0,30],[11,0,29],[12,0,30]]},{"y":2066,"ny":[1,26],"m":[[1,0,29],[2,0,30],[3,0,29],[4,0,30],[5,0,30],[5,1,29],[6,0,30],[7,0,29],[8,0,30],[9,0,29],[10,0,30],[11,0,29],[12,0,30]]},{"y":2067,"ny":[2,14],"m":[[1,0,29],[2,0,30],[3,0,29],[4,0,30],[5,0,29],[6,0,30],[7,0,30],[8,0,29],[9,0,30],[10,0,29],[11,0,30],[12,0,29]]},{"y":2068,"ny":[2,3],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,29],[5,0,29],[6,0,30],[7,0,30],[8,0,29],[9,0,30],[10,0,30],[11,0,29],[12,0,30]]},{"y":2069,"ny":[1,23],"m":[[1,0,29],[2,0,30],[3,0,29],[4,0,30],[4,1,29],[5,0,29],[6,0,30],[7,0,29],[8,0,30],[9,0,30],[10,0,30],[11,0,29],[12,0,30]]},{"y":2070,"ny":[2,11],"m":[[1,0,29],[2,0,30],[3,0,29],[4,0,30],[5,0,29],[6,0,29],[7,0,30],[8,0,29],[9,0,30],[10,0,30],[11,0,29],[12,0,30]]},{"y":2071,"ny":[1,31],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,29],[5,0,30],[6,0,29],[7,0,29],[8,0,30],[8,1,29],[9,0,30],[10,0,29],[11,0,30],[12,0,30]]},{"y":2072,"ny":[2,19],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,29],[5,0,30],[6,0,29],[7,0,29],[8,0,30],[9,0,29],[10,0,30],[11,0,29],[12,0,30]]},{"y":2073,"ny":[2,7],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,30],[5,0,29],[6,0,30],[7,0,29],[8,0,29],[9,0,30],[10,0,29],[11,0,30],[12,0,29]]},{"y":2074,"ny":[1,27],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,30],[5,0,29],[6,0,30],[6,1,29],[7,0,30],[8,0,29],[9,0,30],[10,0,29],[11,0,30],[12,0,29]]},{"y":2075,"ny":[2,15],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,29],[5,0,30],[6,0,30],[7,0,29],[8,0,30],[9,0,29],[10,0,30],[11,0,29],[12,0,30]]},{"y":2076,"ny":[2,5],"m":[[1,0,29],[2,0,30],[3,0,29],[4,0,30],[5,0,29],[6,0,30],[7,0,29],[8,0,30],[9,0,30],[10,0,29],[11,0,30],[12,0,29]]},{"y":2077,"ny":[1,24],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,29],[4,1,29],[5,0,30],[6,0,29],[7,0,30],[8,0,30],[9,0,30],[10,0,29],[11,0,30],[12,0,29]]},{"y":2078,"ny":[2,12],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,29],[5,0,29],[6,0,30],[7,0,29],[8,0,30],[9,0,30],[10,0,29],[11,0,30],[12,0,30]]},{"y":2079,"ny":[2,2],"m":[[1,0,29],[2,0,30],[3,0,29],[4,0,30],[5,0,29],[6,0,29],[7,0,30],[8,0,29],[9,0,30],[10,0,29],[11,0,30],[12,0,30]]},{"y":2080,"ny":[1,22],"m":[[1,0,30],[2,0,29],[3,0,30],[3,1,29],[4,0,30],[5,0,29],[6,0,29],[7,0,30],[8,0,29],[9,0,29],[10,0,30],[11,0,30],[12,0,30]]},{"y":2081,"ny":[2,9],"m":[[1,0,29],[2,0,30],[3,0,30],[4,0,29],[5,0,30],[6,0,29],[7,0,29],[8,0,30],[9,0,29],[10,0,29],[11,0,30],[12,0,30]]},{"y":2082,"ny":[1,29],"m":[[1,0,29],[2,0,30],[3,0,30],[4,0,30],[5,0,29],[6,0,29],[7,0,30],[7,1,29],[8,0,30],[9,0,29],[10,0,29],[11,0,30],[12,0,30]]},{"y":2083,"ny":[2,17],"m":[[1,0,29],[2,0,30],[3,0,30],[4,0,29],[5,0,30],[6,0,29],[7,0,30],[8,0,29],[9,0,30],[10,0,29],[11,0,30],[12,0,29]]},{"y":2084,"ny":[2,6],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,29],[5,0,30],[6,0,30],[7,0,29],[8,0,30],[9,0,29],[10,0,30],[11,0,29],[12,0,30]]},{"y":2085,"ny":[1,26],"m":[[1,0,29],[2,0,30],[3,0,29],[4,0,29],[5,0,30],[5,1,30],[6,0,29],[7,0,30],[8,0,30],[9,0,29],[10,0,30],[11,0,29],[12,0,30]]},{"y":2086,"ny":[2,14],"m":[[1,0,29],[2,0,30],[3,0,29],[4,0,29],[5,0,30],[6,0,29],[7,0,30],[8,0,30],[9,0,29],[10,0,30],[11,0,30],[12,0,29]]},{"y":2087,"ny":[2,3],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,29],[5,0,29],[6,0,30],[7,0,29],[8,0,30],[9,0,29],[10,0,30],[11,0,30],[12,0,30]]},{"y":2088,"ny":[1,24],"m":[[1,0,29],[2,0,30],[3,0,29],[4,0,30],[4,1,29],[5,0,29],[6,0,30],[7,0,29],[8,0,29],[9,0,30],[10,0,30],[11,0,30],[12,0,29]]},{"y":2089,"ny":[2,10],"m":[[1,0,30],[2,0,30],[3,0,29],[4,0,30],[5,0,29],[6,0,29],[7,0,29],[8,0,30],[9,0,29],[10,0,30],[11,0,30],[12,0,29]]},{"y":2090,"ny":[1,30],"m":[[1,0,30],[2,0,30],[3,0,30],[4,0,29],[5,0,30],[6,0,29],[7,0,29],[8,0,30],[8,1,29],[9,0,29],[10,0,30],[11,0,30],[12,0,29]]},{"y":2091,"ny":[2,18],"m":[[1,0,30],[2,0,30],[3,0,29],[4,0,30],[5,0,29],[6,0,30],[7,0,29],[8,0,30],[9,0,29],[10,0,29],[11,0,30],[12,0,29]]},{"y":2092,"ny":[2,7],"m":[[1,0,30],[2,0,30],[3,0,29],[4,0,30],[5,0,30],[6,0,29],[7,0,30],[8,0,29],[9,0,30],[10,0,29],[11,0,30],[12,0,29]]},{"y":2093,"ny":[1,27],"m":[[1,0,29],[2,0,30],[3,0,30],[4,0,29],[5,0,30],[6,0,29],[6,1,30],[7,0,30],[8,0,29],[9,0,30],[10,0,29],[11,0,30],[12,0,29]]},{"y":2094,"ny":[2,15],"m":[[1,0,29],[2,0,30],[3,0,29],[4,0,30],[5,0,29],[6,0,30],[7,0,30],[8,0,29],[9,0,30],[10,0,30],[11,0,29],[12,0,30]]},{"y":2095,"ny":[2,5],"m":[[1,0,29],[2,0,30],[3,0,29],[4,0,29],[5,0,30],[6,0,29],[7,0,30],[8,0,29],[9,0,30],[10,0,30],[11,0,30],[12,0,29]]},{"y":2096,"ny":[1,25],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,29],[4,1,29],[5,0,30],[6,0,29],[7,0,29],[8,0,30],[9,0,30],[10,0,30],[11,0,29],[12,0,30]]},{"y":2097,"ny":[2,12],"m":[[1,0,30],[2,0,29],[3,0,30],[4,0,29],[5,0,29],[6,0,29],[7,0,30],[8,0,29],[9,0,30],[10,0,30],[11,0,29],[12,0,30]]},{"y":2098,"ny":[2,1],"m":[[1,0,30],[2,0,30],[3,0,29],[4,0,30],[5,0,29],[6,0,29],[7,0,29],[8,0,30],[9,0,29],[10,0,30],[11,0,29],[12,0,30]]}]</script>
+
+<script>
+(function(){
+'use strict';
+
+/* ============ 基础工具 ============ */
+var $ = function(s,e){ return (e||document).querySelector(s); };
+var $$ = function(s,e){ return Array.prototype.slice.call((e||document).querySelectorAll(s)); };
+var sleep = function(ms){ return new Promise(function(r){ setTimeout(r, ms); }); };
+var DAY = 86400000;
+
+function cnNum(n){
+  var c = ['零','一','二','三','四','五','六','七','八','九','十'];
+  if(n<=10) return c[n];
+  if(n<20) return '十'+c[n-10];
+  return c[Math.floor(n/10)]+'十'+(n%10?c[n%10]:'');
+}
+function pad2(n){ return n<10 ? '0'+n : ''+n; }
+
+/* ============ 农历 ============ */
+var BRANCH = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+var GAN = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+var _table = null;
+
+function lunarTable(){
+  if(!_table){
+    _table = JSON.parse($('#lunar-data').textContent);
+  }
+  return _table;
+}
+function dnum(y,m,d){ return Date.UTC(y,m-1,d)/DAY; }
+
+function solarToLunar(date){
+  var T = lunarTable(), y = date.getFullYear();
+  var i = y - T[0].y;
+  if(i < 0 || i >= T.length) return null;
+  var row = T[i];
+  var t = dnum(y, date.getMonth()+1, date.getDate());
+  var start = dnum(row.y, row.ny[0], row.ny[1]);
+  if(t < start){
+    if(i === 0) return null;
+    i -= 1; row = T[i];
+    start = dnum(row.y, row.ny[0], row.ny[1]);
+  }
+  var off = t - start;
+  for(var k=0;k<row.m.length;k++){
+    var mo = row.m[k];
+    if(off < mo[2]) return { year: row.y, month: mo[0], day: off+1, leap: !!mo[1] };
+    off -= mo[2];
+  }
+  return null;
+}
+function ganzhiYear(y){ return GAN[((y-4)%10+10)%10] + BRANCH[((y-4)%12+12)%12]; }
+function branchIndexOf(h){ return Math.floor(((h+1)%24)/2); }
+function hourRange(i){
+  if(i===0) return '23:00–00:59';
+  return pad2(i*2-1)+':00–'+pad2(i*2)+':59';
+}
+function lunarMonthName(m, leap){
+  if(m===1) return (leap?'闰':'')+'正月';
+  if(m===11) return (leap?'闰':'')+'冬月';
+  if(m===12) return (leap?'闰':'')+'腊月';
+  return (leap?'闰':'')+cnNum(m)+'月';
+}
+function lunarDayName(d){
+  if(d===10) return '初十';
+  if(d===20) return '二十';
+  if(d===30) return '三十';
+  var pre = ['初','十','廿'][Math.floor((d-1)/10)] || '';
+  var last = ['十','一','二','三','四','五','六','七','八','九'][d%10];
+  if(d<10) return '初'+last;
+  if(d<20) return '十'+last;
+  return '廿'+last;
+}
+function fullLunarText(ld){
+  return ganzhiYear(ld.year)+'年 '+lunarMonthName(ld.month, ld.leap)+lunarDayName(ld.day);
+}
+
+/* ============ 六宫数据 ============ */
+var GUA = [
+{
+  name:'大安', god:'青龙', wu:'木', color:'青', dir:'东', num:[1,5,7], level:'吉', score:2,
+  poem:['大安事事昌，求谋在东方','失物去不远，宅舍保安康','行人身未动，病者主无妨','将军回田野，仔细好推详'],
+  general:'身安事稳，宜静守待时。',
+  items:{
+    career:'守成则吉，宜静不宜动，旧局稳中有进。',
+    wealth:'财在近处，东方得利，缓取不失。',
+    love:'情定而身未动，缘分安稳，宜守。',
+    health:'病在表，静养可安，无大碍。',
+    travel:'行期未定，动则迟缓，近行为吉。',
+    lost:'物未远去，多在家中东方，静心可寻。',
+    legal:'事可平息，宜和不争。',
+    study:'根基稳，宜温故，勿躁进。',
+    social:'贵人在东，旧交可托。'
+  },
+  good:'宜守成、理旧事、往东方谋事', bad:'忌远行、妄动、强出头'
+},
+{
+  name:'留连', god:'玄武', wu:'水', color:'黑', dir:'北', num:[2,8,10], level:'凶', score:-1,
+  poem:['留连事难成，求谋日未明','官事凡宜缓，去者未回程','失物南方见，急讨方心称','更须防口舌，人口且平平'],
+  general:'事多牵绊，欲速不达。',
+  items:{
+    career:'事多牵绊，进二退一，忌仓促。',
+    wealth:'求财未明，账目不清，宜缓图。',
+    love:'情意纠缠，进退两难，久拖生变。',
+    health:'病势缠绵，反复难愈，需久调。',
+    travel:'行程延误，去者未归。',
+    lost:'物在他处，久寻方见，多在南方。',
+    legal:'官事宜缓，急则招累。',
+    study:'心散难专，久学方成。',
+    social:'口舌缠身，慎言避嫌。'
+  },
+  good:'宜等待、缓议、理顺旧事', bad:'忌催逼、强求、仓促决断'
+},
+{
+  name:'速喜', god:'朱雀', wu:'火', color:'赤', dir:'南', num:[3,6,9], level:'吉', score:3,
+  poem:['速喜喜来临，求财向南行','失物申未午，逢人路上寻','官事有福德，病者无祸侵','田宅六畜吉，行人有信音'],
+  general:'喜自外来，事在速成。',
+  items:{
+    career:'喜讯将至，速则有成，宜主动出击。',
+    wealth:'求财向南，快进快得。',
+    love:'佳音在即，遇合神速。',
+    health:'病去如风，速愈。',
+    travel:'行人将至，行程顺捷。',
+    lost:'物在申未午方，路上问人可寻。',
+    legal:'有福德护，事可速了。',
+    study:'才思敏捷，一考即中。',
+    social:'客来报喜，新交有益。'
+  },
+  good:'宜速行、见客、向南求财', bad:'忌犹豫、拖延、错失时机'
+},
+{
+  name:'赤口', god:'白虎', wu:'金', color:'白', dir:'西', num:[4,7,10], level:'凶', score:-2,
+  poem:['赤口主口舌，官非切要防','失物急去寻，行人有惊慌','六畜多作怪，病者出西方','更须防咒诅，恐怕染瘟殃'],
+  general:'口舌争竞，防人为患。',
+  items:{
+    career:'争竞激烈，慎防小人，忌硬碰。',
+    wealth:'财因口舌而损，忌争利。',
+    love:'口角频生，言语伤人，宜缓。',
+    health:'病从口入，伤在西方，宜早治。',
+    travel:'行路有惊，慎防磕碰。',
+    lost:'物被人取，急寻可回。',
+    legal:'官非切防，争讼必伤。',
+    study:'考运多阻，慎防失误。',
+    social:'是非口舌，退一步为安。'
+  },
+  good:'宜闭口、避争、静守观望', bad:'忌争讼、口角、往西方远行'
+},
+{
+  name:'小吉', god:'六合', wu:'木', color:'青', dir:'东南', num:[1,5,7], level:'大吉', score:3,
+  poem:['小吉最吉昌，路上好商量','阴人来报喜，失物在坤方','行人立便至，交易甚是强','凡事皆和合，病者叩穹苍'],
+  general:'和合顺遂，众助其成。',
+  items:{
+    career:'诸事和合，贵人相助，可成。',
+    wealth:'交易顺利，财源渐旺。',
+    love:'良缘和合，媒妁之言吉。',
+    health:'病无大碍，药到即安。',
+    travel:'行人即至，一路平安。',
+    lost:'物在坤方（西南），问人可得。',
+    legal:'和则可解，有人调停。',
+    study:'事半功倍，考运顺遂。',
+    social:'人缘和顺，众口皆赞。'
+  },
+  good:'宜和合、交易、托人办事', bad:'忌孤行、独断、拒人于外'
+},
+{
+  name:'空亡', god:'勾陈', wu:'土', color:'黄', dir:'中', num:[3,6,9], level:'大凶', score:-3,
+  poem:['空亡事不祥，阴人多乖张','求财无利益，行人有灾殃','失物寻不见，官事有刑伤','病人逢暗鬼，禳解保安康'],
+  general:'事落空处，求之无应。',
+  items:{
+    career:'谋事成空，宜守不宜求。',
+    wealth:'求财无利，防虚耗。',
+    love:'缘分虚浮，镜花水月。',
+    health:'病在暗处，宜早查。',
+    travel:'行人音信稀，行程多阻。',
+    lost:'物已难寻，恐不复得。',
+    legal:'官事有刑，慎入公门。',
+    study:'心不在焉，事倍功半。',
+    social:'人情淡薄，勿托重事。'
+  },
+  good:'宜守旧、修心、查漏补缺', bad:'忌求财、远行、重托于人'
+}
+];
+
+var MATTERS = [
+  {k:'all', n:'综合'}, {k:'career', n:'事业'}, {k:'wealth', n:'财运'},
+  {k:'love', n:'姻缘'}, {k:'health', n:'健康'}, {k:'travel', n:'出行'},
+  {k:'lost', n:'寻物'}, {k:'legal', n:'官非'}, {k:'study', n:'学业'}, {k:'social', n:'人际'}
+];
+
+/* ============ 状态 ============ */
+var KEY_NOTE = 'xln_notes_v2', KEY_SET = 'xln_set_v2';
+var settings = loadSettings();
+var state = { matter:'all', busy:false, last:null };
+
+function loadSettings(){
+  var def = {nightZi:false, vibrate:true};
+  try{
+    var raw = localStorage.getItem(KEY_SET);
+    if(raw){ var o = JSON.parse(raw); return {nightZi:!!o.nightZi, vibrate:o.vibrate!==false}; }
+  }catch(e){}
+  return def;
+}
+function saveSettings(){
+  try{ localStorage.setItem(KEY_SET, JSON.stringify(settings)); }catch(e){}
+}
+function loadNotes(){
+  try{
+    var raw = localStorage.getItem(KEY_NOTE);
+    var arr = raw ? JSON.parse(raw) : [];
+    return Array.isArray(arr) ? arr : [];
+  }catch(e){ return []; }
+}
+function saveNotes(arr){
+  try{ localStorage.setItem(KEY_NOTE, JSON.stringify(arr.slice(0,80))); }
+  catch(e){ toast('本机存储空间不足，未能保存'); }
+}
+
+/* ============ 起课 ============ */
+function castCore(month, day, hIdx){
+  var m = (month - 1) % 6;
+  var d = (m + day - 1) % 6;
+  var h = (d + hIdx) % 6;
+  return {m:m, d:d, h:h};
+}
+function totalScore(g){
+  return GUA[g.m].score + GUA[g.d].score + GUA[g.h].score*2;
+}
+function verdictOf(total){
+  if(total >= 8) return {label:'大吉', cls:'v-c1', text:'所求可成。天时地利相扶，贵人自外来，趁势而行，速则有获。'};
+  if(total >= 4) return {label:'吉',   cls:'v-c2', text:'事有可为，略费周折。稳扎稳打，多问多听，终能如愿。'};
+  if(total >= 0) return {label:'平',   cls:'v-c3', text:'事在两可之间，成亦不厚，败亦无大损。守中不动，等其自明。'};
+  if(total >= -4) return {label:'滞',  cls:'v-c4', text:'事多迟滞，急则生变。宜缓图、另寻他途，或待时而动。'};
+  return {label:'凶', cls:'v-c5', text:'所求难成，反有耗损。宜止步收敛，护住根本，择日再图。'};
+}
+
+/* ============ 日期上下文 ============ */
+function currentContext(){
+  var now = new Date();
+  var hIdx = branchIndexOf(now.getHours());
+  var ld = solarToLunar(now);
+  var solar = now;
+  if(!ld) return {ok:false, now:now};
+  if(settings.nightZi && now.getHours() === 23){
+    var nxt = new Date(now.getTime() + DAY);
+    var ld2 = solarToLunar(nxt);
+    if(ld2){ ld = ld2; solar = nxt; }
+  }
+  return {ok:true, now:now, lunar:ld, hIdx:hIdx, solarDate:solar};
+}
+
+/* ============ 渲染：罗盘 ============ */
+function buildCompass(){
+  var faces = $('#layerFaces'), br = $('#layerBranch');
+  var R = 0, BR_R = 0;
+  var w = $('#compass').clientWidth || 298;
+  R = w * 0.362;      // 宫名半径
+  BR_R = w * 0.474;   // 地支半径
+
+  faces.innerHTML = GUA.map(function(g,i){
+    var a = i*60;
+    return '<div class="face" data-i="'+i+'" style="transform:translate(-50%,-50%) rotate('+a+'deg) translateY(-'+R.toFixed(1)+'px)">'
+         + '<span style="transform:rotate(-'+a+'deg)">'+g.name+'</span></div>';
+  }).join('');
+
+  br.innerHTML = BRANCH.map(function(b,i){
+    var a = i*30;
+    return '<div class="branch" style="transform:translate(-50%,-50%) rotate('+a+'deg) translateY(-'+BR_R.toFixed(1)+'px)">'
+         + '<span style="transform:rotate(-'+a+'deg)">'+b+'</span></div>';
+  }).join('');
+}
+
+/* ============ 高亮 ============ */
+function clearLit(){
+  $$('.face').forEach(function(el){ el.classList.remove('lit','done'); });
+  $('#castBtn').classList.remove('hint');
+}
+function lit(i){
+  $$('.face').forEach(function(el, k){ el.classList.toggle('lit', k===i); });
+}
+function buzz(ms){
+  if(settings.vibrate && navigator.vibrate){ try{ navigator.vibrate(ms); }catch(e){} }
+}
+
+/* ============ 起课动画 ============ */
+function animateCast(g, month, day, hIdx){
+  var hint = $('#castHint');
+  var total = (g.m+1) + (g.d+1) + (g.h+1);
+  var steps = [];
+  var i;
+  for(i=0;i<=g.m;i++) steps.push({i:i, p:1});
+  for(i=g.m;i<=g.m+g.d;i++) steps.push({i:i%6, p:2});
+  for(i=(g.m+g.d);i<=(g.m+g.d+g.h);i++) steps.push({i:i%6, p:3});
+
+  var phaseText = [
+    '',
+    '自大安起正月，顺数至'+lunarMonthName(month,false)+'（天时）',
+    '自'+GUA[g.m].name+'起初一，顺数至'+lunarDayName(day)+'（地利）',
+    '自'+GUA[g.d].name+'起子时，顺数至'+BRANCH[hIdx]+'时（人和）'
+  ];
+
+  hint.classList.add('act');
+  var lastP = 0;
+  return steps.reduce(function(p, s){
+    return p.then(function(){
+      if(s.p !== lastP){
+        lastP = s.p;
+        hint.textContent = phaseText[s.p];
+        $$('.face').forEach(function(el){ el.classList.remove('done'); });
+      }
+      lit(s.i); buzz(14);
+      return sleep(s.p===3 ? 96 : 76);
+    });
+  }, Promise.resolve()).then(function(){
+    $$('.face').forEach(function(el, k){
+      el.classList.remove('lit');
+      if(k===g.h) el.classList.add('done');
+    });
+    hint.textContent = '落宫 · '+GUA[g.h].name;
+    hint.classList.remove('act');
+    $('#castBtn').classList.remove('hint');
+  });
+}
+
+/* ============ 结果渲染 ============ */
+function itemOf(g, mk){
+  return mk === 'general' ? g.general : (g.items[mk] || g.general);
+}
+
+function miniCompass(g){
+  var c = 50, R = 22, LR = 42.5, i;
+  var dots = '', labels = '';
+  for(i=0;i<6;i++){
+    var a = (-90 + i*60) * Math.PI/180;
+    var x = c + R*Math.cos(a), y = c + R*Math.sin(a);
+    var lx = c + LR*Math.cos(a), ly = c + LR*Math.sin(a) + 2.9;
+
+    if(i === g.h){
+      dots += '<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="4.8" fill="#d95a46"/>'
+           +  '<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="7.2" fill="none" stroke="#d95a46" stroke-opacity=".3" stroke-width="1"/>';
+    }else if(i === g.d){
+      dots += '<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="4" fill="none" stroke="#d8b25c" stroke-width="1.5"/>';
+    }else if(i === g.m){
+      dots += '<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="4" fill="none" stroke="#d95a46" stroke-width="1.3" stroke-dasharray="2 2"/>';
+    }else{
+      dots += '<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="2" fill="#3b414a"/>';
+    }
+    labels += '<text x="'+lx.toFixed(1)+'" y="'+ly.toFixed(1)+'" font-size="6.8" text-anchor="middle" fill="'
+           + (i===g.h?'#ef8a74':(i===g.d?'#ddb464':(i===g.m?'#ef8a74':'#7f7969')))
+           + '" font-family="serif" letter-spacing=".5">'+GUA[i].name+'</text>';
+  }
+  return '<div class="mini-compass"><svg viewBox="0 0 100 100">'
+    + '<circle cx="50" cy="50" r="30" fill="none" stroke="#2e343c" stroke-width="1"/>'
+    + '<circle cx="50" cy="50" r="11" fill="none" stroke="#242a31" stroke-width="1"/>'
+    + dots + labels
+    + '</svg></div>';
+}
+
+function readingHTML(rec){
+  var g = rec.g, mG = GUA[g.m], dG = GUA[g.d], hG = GUA[g.h];
+  var mk = rec.matter === 'all' ? 'general' : rec.matter;
+  var matterName = (MATTERS.filter(function(x){return x.k===rec.matter;})[0]||{n:'综合'}).n;
+  var v = verdictOf(totalScore(g));
+  var numCN = hG.num.map(cnNum).join('、');
+
+  var flowHTML =
+      '<div class="flow-i"><i>起于</i><span><b style="font-weight:500;font-family:var(--serif)">'+mG.name+'</b>　'+itemOf(mG, mk)+'</span></div>'
+    + '<div class="flow-i"><i>中途</i><span><b style="font-weight:500;font-family:var(--serif)">'+dG.name+'</b>　'+itemOf(dG, mk)+'</span></div>'
+    + '<div class="flow-i"><i>落宫</i><span><b style="font-weight:500;font-family:var(--serif)">'+hG.name+'</b>　'+itemOf(hG, mk)+'</span></div>';
+
+  return ''
+  + '<div class="res-meta">'+rec.solarText+'　'+rec.lunarText+' · '+BRANCH[rec.hIdx]+'时'
+  + '<span class="res-matter">所问 · '+matterName+'</span></div>'
+  + '<div class="chips res-chips">'
+  +   MATTERS.map(function(m){ return '<button class="chip'+(m.k===rec.matter?' on':'')+'" data-matter="'+m.k+'">'+m.n+'</button>'; }).join('')
+  + '</div>'
+  + miniCompass(g)
+  + '<div class="gua-row">'
+  +   '<div class="gua-cell minor"><span class="tag">天时</span><b>'+mG.name+'</b></div>'
+  +   '<div class="gua-arrow">→</div>'
+  +   '<div class="gua-cell minor"><span class="tag">地利</span><b>'+dG.name+'</b></div>'
+  +   '<div class="gua-arrow">→</div>'
+  +   '<div class="gua-cell"><span class="tag">人和</span><b>'+hG.name+'</b></div>'
+  + '</div>'
+  + '<div class="verdict"><div class="v-badge '+v.cls+'">'+v.label+'</div><div class="v-text">'+v.text+'</div></div>'
+  + '<div class="block"><div class="block-t">三宫合参</div><div class="flow">'+flowHTML+'</div></div>'
+  + '<div class="block"><div class="block-t">时宫断辞</div><div class="poem">'+hG.poem.map(function(s){return '<span>'+s+'</span>';}).join('')+'</div></div>'
+  + '<div class="block"><div class="block-t">卦象</div><div class="grid2">'
+  +   '<div class="g-cell"><em>五行</em><b>'+hG.wu+'</b></div>'
+  +   '<div class="g-cell"><em>神煞</em><b>'+hG.god+'</b></div>'
+  +   '<div class="g-cell"><em>方位</em><b>'+hG.dir+'</b></div>'
+  +   '<div class="g-cell"><em>色应</em><b>'+hG.color+'</b></div>'
+  +   '<div class="g-cell"><em>应数</em><b>'+numCN+'</b></div>'
+  +   '<div class="g-cell"><em>所问</em><b>'+matterName+'</b></div>'
+  +   '<div class="g-cell gc-wide"><em>应期</em><b>以'+hG.name+'之数，约在'+numCN+'之期（日或月）内见分晓</b></div>'
+  + '</div></div>'
+  + '<div class="block"><div class="block-t">宜忌</div><div class="yj">'
+  +   '<div class="yi"><i>宜</i><span>'+hG.good+'</span></div>'
+  +   '<div class="ji"><i>忌</i><span>'+hG.bad+'</span></div>'
+  + '</div></div>'
+  + '<div class="res-acts">'
+  +   '<button class="main" data-act="save">存入手札</button>'
+  +   '<button data-act="copy">复制分享</button>'
+  +   '<button data-act="again">再起一课</button>'
+  + '</div>'
+  + '<div class="disclaimer">三宫同参，以时宫为断 · 汉基科技</div>';
+}
+
+/* ============ 弹层 ============ */
+var sheet = $('#sheet'), sheetBody = $('#sheetBody'), maskEl = $('#mask'), sheetTitle = $('#sheetTitle');
+var toastTimer = null;
+
+function openSheet(title, html){
+  sheetTitle.textContent = title;
+  sheetBody.innerHTML = html;
+  sheetBody.scrollTop = 0;
+  sheet.classList.add('open');
+  maskEl.classList.add('on');
+  document.body.style.overflow = 'hidden';
+}
+function closeSheet(){
+  sheet.classList.remove('open');
+  maskEl.classList.remove('on');
+  document.body.style.overflow = '';
+}
+function toast(msg){
+  var t = $('#toast');
+  t.textContent = msg;
+  t.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ t.classList.remove('on'); }, 2000);
+}
+
+/* ============ 记录 ============ */
+function buildRecord(ctx, g, matter, source){
+  var now = ctx.now;
+  return {
+    id: String(Date.now()) + Math.floor(Math.random()*90),
+    ts: Date.now(),
+    solarText: now.getFullYear()+'年'+(now.getMonth()+1)+'月'+now.getDate()+'日 '+pad2(now.getHours())+':'+pad2(now.getMinutes()),
+    lunarText: fullLunarText(ctx.lunar),
+    hIdx: ctx.hIdx,
+    g: g,
+    matter: matter,
+    source: source || 'now'
+  };
+}
+
+function shareText(rec){
+  var g = rec.g, mG = GUA[g.m], dG = GUA[g.d], hG = GUA[g.h];
+  var mk = rec.matter === 'all' ? 'general' : rec.matter;
+  var matterName = (MATTERS.filter(function(x){ return x.k===rec.matter; })[0] || {n:'综合'}).n;
+  var v = verdictOf(totalScore(g));
+  return [
+    '【小六壬 · 掐指一算】',
+    rec.solarText + '　' + rec.lunarText + ' ' + BRANCH[rec.hIdx] + '时',
+    '所问：' + matterName,
+    '天时 ' + mG.name + ' → 地利 ' + dG.name + ' → 人和 ' + hG.name,
+    '课断：' + v.label + '。' + v.text,
+    '时宫：' + hG.general,
+    '应期：' + hG.num.map(cnNum).join('、') + '之数（日或月）',
+    '宜：' + hG.good,
+    '忌：' + hG.bad,
+    '',
+    '汉基科技'
+  ].join('\n');
+}
+
+function fallbackCopy(text){
+  var ta = document.createElement('textarea');
+  ta.value = text;
+  ta.setAttribute('readonly','');
+  ta.style.position = 'fixed';
+  ta.style.top = '-9999px';
+  document.body.appendChild(ta);
+  ta.select();
+  var ok = false;
+  try{ ok = document.execCommand('copy'); }catch(e){}
+  document.body.removeChild(ta);
+  if(ok) toast('已复制，可粘贴分享');
+  else toast('复制失败，请长按文字手动复制');
+}
+function copyText(text){
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(function(){
+      toast('已复制，可粘贴分享');
+    }).catch(function(){
+      fallbackCopy(text);
+    });
+  }else{
+    fallbackCopy(text);
+  }
+}
+
+/* ============ 结果展示 ============ */
+function renderResult(rec){
+  openSheet('课 象', readingHTML(rec));
+}
+
+function castNow(){
+  if(state.busy) return;
+  var ctx = currentContext();
+  if(!ctx.ok){ toast('超出农历数据范围（1900–2098）'); return; }
+  state.busy = true;
+  $('#castBtn').disabled = true;
+  var g = castCore(ctx.lunar.month, ctx.lunar.day, ctx.hIdx);
+  animateCast(g, ctx.lunar.month, ctx.lunar.day, ctx.hIdx).then(function(){
+    state.busy = false;
+    $('#castBtn').disabled = false;
+    var rec = buildRecord(ctx, g, state.matter, 'now');
+    state.last = rec;
+    renderResult(rec);
+  });
+}
+
+function castValues(month, day, hIdx, label){
+  if(state.busy) return;
+  state.busy = true;
+  $('#castBtn').disabled = true;
+  closeSheet();
+  var g = castCore(month, day, hIdx);
+  setTimeout(function(){
+    animateCast(g, month, day, hIdx).then(function(){
+      state.busy = false;
+      $('#castBtn').disabled = false;
+      var rec = {
+        id: String(Date.now()) + Math.floor(Math.random()*90),
+        ts: Date.now(),
+        solarText: label.solar,
+        lunarText: label.lunar,
+        hIdx: hIdx,
+        g: g,
+        matter: state.matter,
+        source: label.source
+      };
+      state.last = rec;
+      renderResult(rec);
+    });
+  }, 320);
+}
+
+function castRandom(){
+  var m = 1 + Math.floor(Math.random()*12);
+  var d = 1 + Math.floor(Math.random()*30);
+  var h = Math.floor(Math.random()*12);
+  castValues(m, d, h, {solar:'心念起课', lunar: lunarMonthName(m,false)+lunarDayName(d), source:'random'});
+}
+
+/* ============ 择时 ============ */
+function openPicker(){
+  var hSel = BRANCH.map(function(b,i){
+    return '<option value="'+i+'">'+b+'时（'+hourRange(i)+'）</option>';
+  }).join('');
+  var mSel = '', dSel = '', i;
+  for(i=1;i<=12;i++) mSel += '<option value="'+i+'">'+lunarMonthName(i,false)+'</option>';
+  for(i=1;i<=30;i++) dSel += '<option value="'+i+'">'+lunarDayName(i)+'（'+i+'）</option>';
+
+  openSheet('择 时', ''
+    + '<p class="pick-note">按农历月、日与时辰起课。非闰月时照常取月序，闰月仍以本月序入课。</p>'
+    + '<div class="pick"><label>农历月</label><select id="pkM">'+mSel+'</select></div>'
+    + '<div class="pick"><label>农历日</label><select id="pkD">'+dSel+'</select></div>'
+    + '<div class="pick"><label>时辰</label><select id="pkH">'+hSel+'</select></div>'
+    + '<button class="btn primary" id="pkGo" style="margin-top:6px">以此起课</button>'
+  );
+
+  var ctx = currentContext();
+  if(ctx.ok){
+    $('#pkM').value = ctx.lunar.month;
+    $('#pkD').value = Math.min(ctx.lunar.day, 30);
+    $('#pkH').value = ctx.hIdx;
+  }
+  $('#pkGo').addEventListener('click', function(){
+    var m = parseInt($('#pkM').value, 10);
+    var d = parseInt($('#pkD').value, 10);
+    var h = parseInt($('#pkH').value, 10);
+    castValues(m, d, h, {
+      solar: '择时起课',
+      lunar: lunarMonthName(m,false)+lunarDayName(d),
+      source: 'pick'
+    });
+  });
+}
+
+/* ============ 手札 ============ */
+function renderNotes(){
+  var box = $('#notesList');
+  var arr = loadNotes();
+  if(!arr.length){
+    box.innerHTML = '<div class="empty"><b>空</b>尚无手札<br>起一课后可存留于此</div>';
+    return;
+  }
+  box.innerHTML = arr.map(function(rec){
+    var g = rec.g, hG = GUA[g.h];
+    var v = verdictOf(totalScore(g));
+    var matterName = (MATTERS.filter(function(x){ return x.k===rec.matter; })[0] || {n:'综合'}).n;
+    return '<div class="note" data-id="'+rec.id+'">'
+      + '<div class="note-top"><span class="note-time">'+rec.solarText+'</span>'
+      + '<span class="note-vd" style="color:'+verdictColor(v.label)+'">'+v.label+'</span></div>'
+      + '<div class="note-gua">'+GUA[g.m].name+'<i>→</i>'+GUA[g.d].name+'<i>→</i>'+GUA[g.h].name+'</div>'
+      + '<div class="note-line">'+rec.lunarText+' · '+BRANCH[rec.hIdx]+'时 · 所问'+matterName+'<br>'+itemOf(hG, rec.matter==='all'?'general':rec.matter)+'</div>'
+      + '<div class="note-btns"><button data-nact="open">回看</button><button data-nact="del">删除</button></div>'
+      + '</div>';
+  }).join('');
+}
+function verdictColor(label){
+  return {大吉:'#ef8a74', 吉:'#ddb464', 平:'#a9a293', 滞:'#7fb79a', 凶:'#cfc9bd'}[label] || '#a9a293';
+}
+function saveCurrent(){
+  if(!state.last){ toast('无可保存之课'); return; }
+  var arr = loadNotes();
+  var rec = state.last;
+  if(arr.some(function(x){ return x.id === rec.id; })){ toast('此课已存入手札'); return; }
+  arr.unshift({
+    id: rec.id, ts: rec.ts, solarText: rec.solarText, lunarText: rec.lunarText,
+    hIdx: rec.hIdx, g: rec.g, matter: rec.matter, source: rec.source
+  });
+  saveNotes(arr);
+  renderNotes();
+  toast('已存入手札');
+}
+
+/* ============ 设定 ============ */
+function renderSettings(){
+  $('#setList').innerHTML = ''
+    + '<div class="set-item"><div><div class="set-name">夜子时换日</div>'
+    +   '<div class="set-desc">开启后，23:00 之后起课按次日农历计算（传统夜子时口径）</div></div>'
+    +   '<button class="switch '+(settings.nightZi?'on':'')+'" data-set="nightZi" aria-label="夜子时换日"></button></div>'
+    + '<div class="set-item"><div><div class="set-name">落指震动</div>'
+    +   '<div class="set-desc">起课数宫时轻震提示（需系统支持）</div></div>'
+    +   '<button class="switch '+(settings.vibrate?'on':'')+'" data-set="vibrate" aria-label="震动"></button></div>'
+    + '<div class="set-item"><div><div class="set-name">清空手札</div>'
+    +   '<div class="set-desc">删除本机保存的全部课象记录，不可恢复</div></div>'
+    +   '<button class="danger" data-set="clear" aria-label="清空手札">清空</button></div>';
+}
+
+/* ============ 顶部日期 ============ */
+function renderHeader(){
+  var now = new Date();
+  var wk = ['日','一','二','三','四','五','六'][now.getDay()];
+  $('#hDate').textContent = now.getFullYear()+'年'+(now.getMonth()+1)+'月'+now.getDate()+'日 周'+wk;
+  var ld = solarToLunar(now);
+  if(ld){
+    $('#hLunar').textContent = ganzhiYear(ld.year)+'年 '+lunarMonthName(ld.month, ld.leap)+lunarDayName(ld.day)
+      + ' · ' + BRANCH[branchIndexOf(now.getHours())] + '时';
+  }
+}
+
+/* ============ 交互绑定 ============ */
+function renderChips(){
+  $('#chips').innerHTML = MATTERS.map(function(m){
+    return '<button class="chip'+(m.k===state.matter?' on':'')+'" data-matter="'+m.k+'">'+m.n+'</button>';
+  }).join('');
+}
+
+function switchTab(id){
+  $$('.tabbar button').forEach(function(b){ b.classList.toggle('on', b.dataset.tab === id); });
+  $$('.page').forEach(function(p){ p.classList.toggle('on', p.id === id); });
+  if(id === 'pgNotes') renderNotes();
+  if(id === 'pgSet') renderSettings();
+}
+
+function bind(){
+  $('#castBtn').addEventListener('click', castNow);
+  $('#btnNow').addEventListener('click', castNow);
+  $('#btnPick').addEventListener('click', openPicker);
+  $('#btnRandom').addEventListener('click', castRandom);
+
+  $('#chips').addEventListener('click', function(e){
+    var b = e.target.closest('.chip');
+    if(!b) return;
+    state.matter = b.dataset.matter;
+    $$('.chip', $('#chips')).forEach(function(x){ x.classList.toggle('on', x.dataset.matter === state.matter); });
+  });
+
+  document.querySelector('.tabbar').addEventListener('click', function(e){
+    var b = e.target.closest('button');
+    if(b) switchTab(b.dataset.tab);
+  });
+
+  $('#sheetX').addEventListener('click', closeSheet);
+  maskEl.addEventListener('click', closeSheet);
+
+  sheetBody.addEventListener('click', function(e){
+    var act = e.target.closest('[data-act]');
+    if(act){
+      var a = act.dataset.act;
+      if(a === 'save') saveCurrent();
+      if(a === 'copy'){ copyText(shareText(state.last)); }
+      if(a === 'again'){ closeSheet(); setTimeout(castNow, 380); }
+      return;
+    }
+    var chip = e.target.closest('[data-matter]');
+    if(chip && state.last){
+      state.last.matter = chip.dataset.matter;
+      var scroll = sheetBody.scrollTop;
+      sheetBody.innerHTML = readingHTML(state.last);
+      sheetBody.scrollTop = scroll;
+    }
+  });
+
+  $('#notesList').addEventListener('click', function(e){
+    var btn = e.target.closest('[data-nact]');
+    if(!btn) return;
+    var note = btn.closest('.note');
+    var id = note && note.dataset.id;
+    if(!id) return;
+    var arr = loadNotes();
+    if(btn.dataset.nact === 'open'){
+      var rec = arr.filter(function(x){ return x.id === id; })[0];
+      if(rec){ state.last = rec; renderResult(rec); }
+    }else{
+      arr = arr.filter(function(x){ return x.id !== id; });
+      saveNotes(arr);
+      renderNotes();
+      toast('已删除');
+    }
+  });
+
+  $('#setList').addEventListener('click', function(e){
+    var b = e.target.closest('[data-set]');
+    if(!b) return;
+    var key = b.dataset.set;
+    if(key === 'clear'){
+      if(!loadNotes().length){ toast('手札本是空的'); return; }
+      if(confirm('确定清空全部手札？此操作不可恢复。')){
+        saveNotes([]);
+        renderNotes();
+        toast('手札已清空');
+      }
+      return;
+    }
+    settings[key] = !settings[key];
+    saveSettings();
+    b.classList.toggle('on', settings[key]);
+  });
+
+  window.addEventListener('resize', function(){
+    clearTimeout(window.__rz);
+    window.__rz = setTimeout(buildCompass, 160);
+  });
+  setInterval(renderHeader, 60000);
+}
+
+/* ============ 启动 ============ */
+function init(){
+  buildCompass();
+  renderChips();
+  renderHeader();
+  renderSettings();
+  renderNotes();
+  bind();
+}
+init();
+
+})();
+</script>
+
+<script>
+/* ================= iOS / PWA 运行层 ================= */
+(function(){
+  var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+              (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  var standalone = (window.navigator.standalone === true) ||
+                   (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+
+  if('serviceWorker' in navigator && /^https?:/.test(location.protocol)){
+    window.addEventListener('load', function(){
+      navigator.serviceWorker.register('sw.js').catch(function(){ /* 离线缓存不可用时不阻断主功能 */ });
+    });
+  }
+
+  var isAndroid = /Android/.test(navigator.userAgent);
+
+  if(isIOS && !standalone){
+    var seen = null;
+    try{ seen = localStorage.getItem('xln_tip_ios'); }catch(e){}
+    if(!seen){
+      var tip = document.createElement('div');
+      tip.className = 'iotip';
+      tip.innerHTML = '<div>装到主屏：点下方 <b>分享</b> 图标 → 「添加到主屏幕」，之后全屏离线使用，数据只存本机。</div>'
+                    + '<button class="x" aria-label="知道了">✕</button>';
+      document.body.appendChild(tip);
+      var dismiss = function(){
+        try{ localStorage.setItem('xln_tip_ios','1'); }catch(e){}
+        tip.classList.add('out');
+        setTimeout(function(){ if(tip.parentNode) tip.parentNode.removeChild(tip); }, 320);
+      };
+      tip.querySelector('.x').addEventListener('click', dismiss);
+      setTimeout(dismiss, 9000);
+    }
+  }
+
+  if(isAndroid && !standalone && !isIOS){
+    var seenA = null;
+    try{ seenA = localStorage.getItem('xln_tip_and'); }catch(e){}
+    if(!seenA){
+      var tipA = document.createElement('div');
+      tipA.className = 'iotip';
+      tipA.innerHTML = '<div>装到桌面：点右上角 <b>⋮</b> →「添加到主屏幕」；想彻底脱机，把 <b>小六壬.html</b> 拷进手机用 Chrome 打开即可。</div>'
+                     + '<button class="x" aria-label="知道了">✕</button>';
+      document.body.appendChild(tipA);
+      var dismissA = function(){
+        try{ localStorage.setItem('xln_tip_and','1'); }catch(e){}
+        tipA.classList.add('out');
+        setTimeout(function(){ if(tipA.parentNode) tipA.parentNode.removeChild(tipA); }, 320);
+      };
+      tipA.querySelector('.x').addEventListener('click', dismissA);
+      setTimeout(dismissA, 11000);
+    }
+  }
+})();
+</script>
+
+</body>
+</html>
